@@ -1,0 +1,1824 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AlphaChart Trading Diary | 주식 투자 다이어리</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#f0f7ff',
+              100: '#e0effe',
+              500: '#2563eb',
+              600: '#1d4ed8',
+              700: '#1e40af',
+              800: '#1e3a8a',
+              900: '#0f172a'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: rgba(0,0,0,0.05);
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: rgba(100,116,139,0.3);
+      border-radius: 9999px;
+    }
+  </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col custom-scrollbar">
+
+  <!-- TOP NAVIGATION BAR -->
+  <header class="bg-slate-800/90 backdrop-blur border-b border-slate-700 sticky top-0 z-30">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center shadow-lg shadow-blue-500/20">
+          <i class="fa-solid fa-chart-line text-white text-lg"></i>
+        </div>
+        <div>
+          <div class="flex items-center space-x-2">
+            <span class="font-bold text-lg tracking-tight text-white">AlphaChart Diary</span>
+            <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/30">v1.1</span>
+          </div>
+          <p class="text-xs text-slate-400 hidden sm:block">Seeking Alpha & 차트 분석 기반 트레이딩 저널</p>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <nav class="flex items-center space-x-1 sm:space-x-2">
+        <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-btn px-3 py-1.5 rounded-lg text-sm font-medium transition flex items-center space-x-1.5 bg-blue-600 text-white">
+          <i class="fa-solid fa-gauge-high"></i>
+          <span class="hidden md:inline">대시보드</span>
+        </button>
+        <button onclick="switchTab('watchlist')" id="nav-watchlist" class="nav-btn px-3 py-1.5 rounded-lg text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-700 transition flex items-center space-x-1.5">
+          <i class="fa-solid fa-binoculars text-amber-400"></i>
+          <span class="hidden md:inline">관심종목</span>
+          <span id="nav-watchlist-badge" class="ml-1 px-1.5 py-0.2 rounded-full text-[10px] bg-amber-500/20 text-amber-300 font-bold">0</span>
+        </button>
+        <button onclick="switchTab('trades')" id="nav-trades" class="nav-btn px-3 py-1.5 rounded-lg text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-700 transition flex items-center space-x-1.5">
+          <i class="fa-solid fa-table-list"></i>
+          <span class="hidden md:inline">매매 일지</span>
+        </button>
+        <button onclick="switchTab('study')" id="nav-study" class="nav-btn px-3 py-1.5 rounded-lg text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-700 transition flex items-center space-x-1.5">
+          <i class="fa-solid fa-book-bookmark"></i>
+          <span class="hidden md:inline">리서치 & 공부</span>
+        </button>
+        <button onclick="openTradeModal()" class="ml-2 bg-emerald-600 hover:bg-emerald-500 text-white px-3.5 py-1.5 rounded-lg text-sm font-medium shadow-md shadow-emerald-600/30 transition flex items-center space-x-1.5">
+          <i class="fa-solid fa-plus"></i>
+          <span>새 매매 기록</span>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- MAIN CONTENT CONTAINER -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+    <!-- TAB 1: DASHBOARD -->
+    <section id="tab-dashboard" class="space-y-6">
+      
+      <!-- Top Stats Grid -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- Monthly Trades Target Tracker -->
+        <div class="bg-slate-800 rounded-xl p-5 border border-slate-700 shadow-sm relative overflow-hidden">
+          <div class="flex items-center justify-between text-slate-400 mb-2">
+            <span class="text-xs font-semibold uppercase tracking-wider">월간 거래 횟수</span>
+            <i class="fa-solid fa-repeat text-blue-400 text-sm"></i>
+          </div>
+          <div class="flex items-baseline space-x-2">
+            <span id="stat-monthly-count" class="text-3xl font-bold text-white">0</span>
+            <span class="text-sm text-slate-400 font-medium">/ 20회 목표</span>
+          </div>
+          <div class="mt-3 w-full bg-slate-700 h-1.5 rounded-full overflow-hidden">
+            <div id="stat-progress-bar" class="bg-blue-500 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
+          </div>
+          <p id="stat-monthly-hint" class="mt-2 text-xs text-slate-400">월 20회(주 4~5회) 엄선된 셋업 기준</p>
+        </div>
+
+        <!-- Win Rate -->
+        <div class="bg-slate-800 rounded-xl p-5 border border-slate-700 shadow-sm">
+          <div class="flex items-center justify-between text-slate-400 mb-2">
+            <span class="text-xs font-semibold uppercase tracking-wider">승률 (Win Rate)</span>
+            <i class="fa-solid fa-trophy text-amber-400 text-sm"></i>
+          </div>
+          <div class="flex items-baseline space-x-2">
+            <span id="stat-win-rate" class="text-3xl font-bold text-emerald-400">0%</span>
+            <span id="stat-win-count" class="text-xs text-slate-400">(0승 0패)</span>
+          </div>
+          <p class="mt-3 text-xs text-slate-400">기준 충족 청산 매매 집계</p>
+        </div>
+
+        <!-- Profit / Loss Total -->
+        <div class="bg-slate-800 rounded-xl p-5 border border-slate-700 shadow-sm">
+          <div class="flex items-center justify-between text-slate-400 mb-2">
+            <span class="text-xs font-semibold uppercase tracking-wider">누적 실현 손익</span>
+            <i class="fa-solid fa-dollar-sign text-emerald-400 text-sm"></i>
+          </div>
+          <div class="flex items-baseline space-x-2">
+            <span id="stat-total-pnl" class="text-3xl font-bold text-white">$0.00</span>
+          </div>
+          <p id="stat-avg-return" class="mt-3 text-xs text-slate-400">평균 수익률: 0.0%</p>
+        </div>
+
+        <!-- Watchlist Ready Alert Card -->
+        <div class="bg-slate-800 rounded-xl p-5 border border-slate-700 shadow-sm">
+          <div class="flex items-center justify-between text-slate-400 mb-2">
+            <span class="text-xs font-semibold uppercase tracking-wider">매수 대기 관심종목</span>
+            <i class="fa-solid fa-bell text-amber-400 text-sm"></i>
+          </div>
+          <div class="flex items-baseline space-x-2">
+            <span id="stat-ready-watchlist" class="text-3xl font-bold text-amber-400">0</span>
+            <span class="text-sm text-slate-400 font-medium">개 종목 레이더</span>
+          </div>
+          <div class="mt-3 flex items-center justify-between text-xs text-slate-400">
+            <span>매수 영역 도달/돌파 임박</span>
+            <button onclick="switchTab('watchlist')" class="text-blue-400 hover:text-blue-300 font-medium">확인하기 &rarr;</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Strategy & Protocol Banner -->
+      <div class="bg-gradient-to-r from-slate-800 via-slate-800 to-indigo-950/40 rounded-xl p-5 border border-slate-700/80 shadow-sm">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h2 class="text-base font-semibold text-white flex items-center space-x-2">
+              <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+              <span>나의 핵심 매매 원칙 (Seeking Alpha + 차트 분석)</span>
+            </h2>
+            <div class="mt-2 grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs text-slate-300">
+              <div class="bg-slate-900/60 p-2.5 rounded-lg border border-slate-700/50">
+                <span class="font-bold text-amber-400 block mb-0.5"><i class="fa-solid fa-filter mr-1"></i> Seeking Alpha 필터</span>
+                Quant 등급 'Buy' 이상, 성장성/수익성 B 이상 체크 후 관심종목 편입
+              </div>
+              <div class="bg-slate-900/60 p-2.5 rounded-lg border border-slate-700/50">
+                <span class="font-bold text-blue-400 block mb-0.5"><i class="fa-solid fa-chart-simple mr-1"></i> 차트 타이밍 분석</span>
+                주요 이평선(20/50일선) 지지, RSI 과매도 반등, 거래량 동반 돌파 확인
+              </div>
+              <div class="bg-slate-900/60 p-2.5 rounded-lg border border-slate-700/50">
+                <span class="font-bold text-emerald-400 block mb-0.5"><i class="fa-solid fa-shield-halved mr-1"></i> 손익비 및 리스크 관리</span>
+                진입 전 손절가(Stop Loss) 필수 설정, 최소 손익비 1:2 이상만 진입
+              </div>
+            </div>
+          </div>
+          <div class="flex flex-col sm:flex-row gap-2 shrink-0">
+            <button onclick="openDataModal()" class="px-3 py-2 bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs rounded-lg transition flex items-center justify-center space-x-1">
+              <i class="fa-solid fa-database mr-1"></i> 데이터 백업/복구
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Trades Preview & Top Setups -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Recent Trades List (2 cols) -->
+        <div class="lg:col-span-2 bg-slate-800 rounded-xl p-5 border border-slate-700">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-sm font-semibold text-white flex items-center space-x-2">
+              <i class="fa-solid fa-clock-rotate-left text-blue-400"></i>
+              <span>최근 매매 기록</span>
+            </h3>
+            <button onclick="switchTab('trades')" class="text-xs text-blue-400 hover:text-blue-300 font-medium">전체 보기 &rarr;</button>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-900/60 text-slate-400 border-b border-slate-700">
+                <tr>
+                  <th class="py-2.5 px-3">날짜</th>
+                  <th class="py-2.5 px-3">티커</th>
+                  <th class="py-2.5 px-3">SA Quant</th>
+                  <th class="py-2.5 px-3">차트 셋업</th>
+                  <th class="py-2.5 px-3">손익비</th>
+                  <th class="py-2.5 px-3">상태</th>
+                  <th class="py-2.5 px-3 text-right">손익($ / %)</th>
+                </tr>
+              </thead>
+              <tbody id="recent-trades-body" class="divide-y divide-slate-700/60 text-slate-200">
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Setup Performance Breakdown -->
+        <div class="bg-slate-800 rounded-xl p-5 border border-slate-700 flex flex-col justify-between">
+          <div>
+            <h3 class="text-sm font-semibold text-white mb-3 flex items-center space-x-2">
+              <i class="fa-solid fa-bullseye text-indigo-400"></i>
+              <span>차트 셋업별 성과 분석</span>
+            </h3>
+            <p class="text-xs text-slate-400 mb-4">나에게 가장 높은 승률을 주는 패턴 파악</p>
+            <div id="setup-breakdown-list" class="space-y-3">
+            </div>
+          </div>
+          <div class="mt-5 p-3 rounded-lg bg-slate-900/80 border border-slate-700 text-xs text-slate-400">
+            💡 <span class="text-slate-300 font-medium">팁:</span> 손실 거래라도 원칙(손절선 준수, R:R 준수)을 지켰다면 성공적인 프로세스입니다.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 2: WATCHLIST (NEW SECTION) -->
+    <section id="tab-watchlist" class="space-y-4 hidden">
+      <!-- Header & Action Bar -->
+      <div class="bg-slate-800 rounded-xl p-4 border border-slate-700 flex flex-wrap items-center justify-between gap-3">
+        <div class="flex flex-wrap items-center gap-3">
+          <div>
+            <h2 class="text-base font-bold text-white flex items-center space-x-2">
+              <i class="fa-solid fa-binoculars text-amber-400"></i>
+              <span>관심종목 리스트 & 진입 레이더 (Watchlist)</span>
+            </h2>
+            <p class="text-xs text-slate-400 mt-0.5">Seeking Alpha Quant 우수 기업 중 차트상 매수 타점이 임박한 종목을 모니터링합니다.</p>
+          </div>
+        </div>
+        <div class="flex items-center space-x-2">
+          <div class="relative">
+            <input type="text" id="search-watchlist" oninput="renderWatchlist()" placeholder="관심종목 검색..." class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 w-44 pl-8">
+            <i class="fa-solid fa-magnifying-glass absolute left-2.5 top-2 text-slate-500 text-xs"></i>
+          </div>
+          <select id="filter-watchlist-status" onchange="renderWatchlist()" class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-amber-500">
+            <option value="ALL">전체 상태</option>
+            <option value="BUY_ZONE">매수 영역 도달 (In Buy Zone)</option>
+            <option value="NEAR_BREAKOUT">돌파 임박 (Near Breakout)</option>
+            <option value="WAITING">셋업 대기 (Waiting)</option>
+            <option value="MONITOR">일반 관찰 (Monitoring)</option>
+          </select>
+          <button onclick="openWatchlistModal()" class="bg-amber-600 hover:bg-amber-500 text-white px-3.5 py-1.5 rounded-lg text-xs font-medium transition flex items-center space-x-1.5 shadow-md shadow-amber-600/20">
+            <i class="fa-solid fa-plus"></i>
+            <span>관심종목 추가</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Watchlist Cards Grid -->
+      <div id="watchlist-cards-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      </div>
+    </section>
+
+    <!-- TAB 3: TRADES LOG (Full Table & Filters) -->
+    <section id="tab-trades" class="space-y-4 hidden">
+      <div class="bg-slate-800 rounded-xl p-4 border border-slate-700 flex flex-wrap items-center justify-between gap-3">
+        <div class="flex flex-wrap items-center gap-3">
+          <div class="relative">
+            <input type="text" id="search-ticker" oninput="renderTradesTable()" placeholder="티커 검색 (예: NVDA, APP)..." class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 w-48 pl-8">
+            <i class="fa-solid fa-magnifying-glass absolute left-2.5 top-2 text-slate-500 text-xs"></i>
+          </div>
+          <select id="filter-status" onchange="renderTradesTable()" class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500">
+            <option value="ALL">전체 상태</option>
+            <option value="HOLDING">보유중 (Open)</option>
+            <option value="WIN">익절 (Win)</option>
+            <option value="LOSS">손절 (Loss)</option>
+            <option value="BREAKEVEN">본전 (Breakeven)</option>
+          </select>
+          <select id="filter-setup" onchange="renderTradesTable()" class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500">
+            <option value="ALL">전체 차트 셋업</option>
+            <option value="RSI 과매도 반등">RSI 과매도 반등</option>
+            <option value="주요 이평선 눌림목(Pullback)">주요 이평선 눌림목(Pullback)</option>
+            <option value="박스권/전고점 돌파(Breakout)">박스권/전고점 돌파(Breakout)</option>
+            <option value="이중바닥(Double Bottom)">이중바닥(Double Bottom)</option>
+            <option value="거래량 폭증 추세추종">거래량 폭증 추세추종</option>
+            <option value="기타">기타</option>
+          </select>
+        </div>
+        <div class="flex items-center space-x-2">
+          <button onclick="exportToCSV()" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs rounded-lg transition flex items-center space-x-1.5">
+            <i class="fa-solid fa-file-csv"></i>
+            <span>CSV 내보내기</span>
+          </button>
+          <button onclick="openTradeModal()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition flex items-center space-x-1">
+            <i class="fa-solid fa-plus"></i>
+            <span>새 매매 등록</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="bg-slate-800 rounded-xl border border-slate-700 overflow-hidden shadow-sm">
+        <div class="overflow-x-auto custom-scrollbar">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-900 text-slate-300 border-b border-slate-700 uppercase tracking-wider">
+              <tr>
+                <th class="py-3 px-4">진입일</th>
+                <th class="py-3 px-3">티커</th>
+                <th class="py-3 px-3">상태</th>
+                <th class="py-3 px-3">차트 셋업</th>
+                <th class="py-3 px-3">SA Quant</th>
+                <th class="py-3 px-3">진입가</th>
+                <th class="py-3 px-3">손절가 / 목표가</th>
+                <th class="py-3 px-3">청산가</th>
+                <th class="py-3 px-3">손익비(R:R)</th>
+                <th class="py-3 px-3 text-right">수익률</th>
+                <th class="py-3 px-3 text-right">실현 손익</th>
+                <th class="py-3 px-4 text-center">관리</th>
+              </tr>
+            </thead>
+            <tbody id="trades-table-body" class="divide-y divide-slate-700 text-slate-200">
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 4: RESEARCH & STUDY -->
+    <section id="tab-study" class="space-y-6 hidden">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <h2 class="text-lg font-bold text-white flex items-center space-x-2">
+            <i class="fa-solid fa-graduation-cap text-indigo-400"></i>
+            <span>투자 리서치 & 차트 공부 기록</span>
+          </h2>
+          <p class="text-xs text-slate-400">Seeking Alpha Premium 아티클 요약, 관심 종목 인사이트, 시장 마켓 브리핑을 정리하는 공간입니다.</p>
+        </div>
+        <button onclick="openStudyModal()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-3.5 py-1.5 rounded-lg text-xs font-medium transition flex items-center space-x-1.5 self-start sm:self-auto">
+          <i class="fa-solid fa-pen-to-square"></i>
+          <span>새 공부/리서치 노트 작성</span>
+        </button>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="bg-slate-800/90 border border-slate-700 rounded-xl p-4">
+          <span class="text-xs font-semibold text-amber-400 uppercase tracking-wider block mb-1">
+            <i class="fa-solid fa-newspaper mr-1"></i> Seeking Alpha 분석 템플릿
+          </span>
+          <p class="text-xs text-slate-300 mb-2">Quant Rating, Factor Grades(Valuation, Growth, Momentum), Bull/Bear 논리를 체계적으로 요약</p>
+          <button onclick="createTemplateStudy('SA')" class="text-xs text-blue-400 hover:text-blue-300 font-medium">이 서식으로 작성 &rarr;</button>
+        </div>
+        <div class="bg-slate-800/90 border border-slate-700 rounded-xl p-4">
+          <span class="text-xs font-semibold text-blue-400 uppercase tracking-wider block mb-1">
+            <i class="fa-solid fa-chart-area mr-1"></i> 차트 패턴 케이스 스터디
+          </span>
+          <p class="text-xs text-slate-300 mb-2">RSI 바닥 다이버전스, 돌파 후 지지 확인 등 성공/실패한 차트 사례를 기록하고 교훈 도출</p>
+          <button onclick="createTemplateStudy('CHART')" class="text-xs text-blue-400 hover:text-blue-300 font-medium">이 서식으로 작성 &rarr;</button>
+        </div>
+        <div class="bg-slate-800/90 border border-slate-700 rounded-xl p-4">
+          <span class="text-xs font-semibold text-emerald-400 uppercase tracking-wider block mb-1">
+            <i class="fa-solid fa-globe mr-1"></i> 주간 시장 & 매크로 브리핑
+          </span>
+          <p class="text-xs text-slate-300 mb-2">S&P 500, 나스닥, 금리(10Y 국채), CPI/FOMC 일정 및 주간 시장 심리(Fear & Greed) 점검</p>
+          <button onclick="createTemplateStudy('MACRO')" class="text-xs text-blue-400 hover:text-blue-300 font-medium">이 서식으로 작성 &rarr;</button>
+        </div>
+      </div>
+
+      <div id="study-notes-container" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      </div>
+    </section>
+
+  </main>
+
+  <!-- MODAL: ADD / EDIT WATCHLIST ITEM -->
+  <div id="watchlist-modal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-slate-800 border border-slate-700 rounded-2xl max-w-2xl w-full max-h-[92vh] flex flex-col shadow-2xl overflow-hidden">
+      <div class="p-5 border-b border-slate-700 flex items-center justify-between bg-slate-800/90">
+        <div>
+          <h3 id="watchlist-modal-title" class="text-base font-bold text-white flex items-center space-x-2">
+            <i class="fa-solid fa-binoculars text-amber-400"></i>
+            <span>관심종목 등록 / 수정</span>
+          </h3>
+          <p class="text-xs text-slate-400 mt-0.5">Seeking Alpha 분석 지표와 목표 차트 셋업을 모니터링 대상으로 추가합니다.</p>
+        </div>
+        <button onclick="closeWatchlistModal()" class="text-slate-400 hover:text-white text-lg p-1.5"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <form id="watchlist-form" onsubmit="saveWatchlist(event)" class="p-5 overflow-y-auto custom-scrollbar space-y-4 flex-1">
+        <input type="hidden" id="w-form-id">
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          <div>
+            <label class="block text-xs text-slate-400 mb-1">티커(Ticker) *</label>
+            <input type="text" id="w-ticker" required placeholder="예: APP, TSLA" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white uppercase focus:outline-none focus:border-amber-500">
+          </div>
+          <div>
+            <label class="block text-xs text-slate-400 mb-1">회사명(선택)</label>
+            <input type="text" id="w-name" placeholder="예: AppLovin Corp" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-amber-500">
+          </div>
+          <div>
+            <label class="block text-xs text-slate-400 mb-1">모니터링 상태 *</label>
+            <select id="w-status" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-amber-500">
+              <option value="BUY_ZONE">매수 영역 도달 (In Buy Zone)</option>
+              <option value="NEAR_BREAKOUT">돌파 임박 (Near Breakout)</option>
+              <option value="WAITING" selected>셋업 대기 (Waiting for Setup)</option>
+              <option value="MONITOR">일반 관찰 (General Monitoring)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="bg-slate-900/60 p-3.5 rounded-xl border border-slate-700/80 space-y-3">
+          <span class="text-xs font-bold text-amber-400 uppercase tracking-wider block">
+            <i class="fa-solid fa-star mr-1"></i> Seeking Alpha Premium 데이터
+          </span>
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            <div>
+              <label class="block text-xs text-slate-400 mb-1">Quant Rating</label>
+              <select id="w-sa-quant" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-amber-500">
+                <option value="Strong Buy">Strong Buy</option>
+                <option value="Buy" selected>Buy</option>
+                <option value="Hold">Hold</option>
+                <option value="Sell">Sell</option>
+                <option value="Strong Sell">Strong Sell</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs text-slate-400 mb-1">Factor Grades 요약</label>
+              <input type="text" id="w-sa-grades" placeholder="예: Grw A+, Prof A, Val C" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-amber-500">
+            </div>
+            <div>
+              <label class="block text-xs text-slate-400 mb-1">Wall St. Consensus</label>
+              <input type="text" id="w-sa-wallst" placeholder="예: Strong Buy (4.7)" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-amber-500">
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-slate-900/60 p-3.5 rounded-xl border border-slate-700/80 space-y-3">
+          <span class="text-xs font-bold text-blue-400 uppercase tracking-wider block">
+            <i class="fa-solid fa-chart-line mr-1"></i> 차트 모니터링 기준 및 트리거
+          </span>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div>
+              <label class="block text-xs text-slate-400 mb-1">감시 가격 (Trigger $) *</label>
+              <input type="number" step="any" id="w-trigger-price" required placeholder="0.00" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500">
+            </div>
+            <div>
+              <label class="block text-xs text-slate-400 mb-1">주요 지지선 ($)</label>
+              <input type="number" step="any" id="w-support" placeholder="0.00" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500">
+            </div>
+            <div>
+              <label class="block text-xs text-slate-400 mb-1">주요 저항선 ($)</label>
+              <input type="number" step="any" id="w-resistance" placeholder="0.00" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500">
+            </div>
+            <div>
+              <label class="block text-xs text-slate-400 mb-1">기대 차트 셋업</label>
+              <select id="w-setup-type" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500">
+                <option value="RSI 과매도 반등">RSI 과매도 반등 (RSI Bottom)</option>
+                <option value="주요 이평선 눌림목(Pullback)">주요 이평선 눌림목</option>
+                <option value="박스권/전고점 돌파(Breakout)">박스권/전고점 돌파</option>
+                <option value="이중바닥(Double Bottom)">이중바닥 (Double Bottom)</option>
+                <option value="거래량 폭증 추세추종">거래량 폭증 추세추종</option>
+                <option value="기타">기타</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs text-slate-400 mb-1">관찰 메모 & 매수 시나리오</label>
+          <textarea id="w-notes" rows="2" placeholder="어떤 조건(RSI 수치, 거래량, 이평선 지지 등)이 충족되면 진입할 것인지 시나리오를 적어주세요." class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-amber-500"></textarea>
+        </div>
+
+        <div class="pt-3 border-t border-slate-700 flex items-center justify-end space-x-2">
+          <button type="button" onclick="closeWatchlistModal()" class="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-lg text-xs font-medium transition">취소</button>
+          <button type="submit" class="px-5 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-xs font-medium shadow-md transition">저장하기</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: ADD / EDIT TRADE -->
+  <div id="trade-modal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-slate-800 border border-slate-700 rounded-2xl max-w-3xl w-full max-h-[92vh] flex flex-col shadow-2xl overflow-hidden">
+      <div class="p-5 border-b border-slate-700 flex items-center justify-between bg-slate-800/90">
+        <div>
+          <h3 id="trade-modal-title" class="text-base font-bold text-white flex items-center space-x-2">
+            <i class="fa-solid fa-pen-nib text-blue-400"></i>
+            <span>새 매매 기록 작성</span>
+          </h3>
+          <p class="text-xs text-slate-400 mt-0.5">Seeking Alpha 분석 데이터와 차트 분석 기준을 함께 기록합니다.</p>
+        </div>
+        <button onclick="closeTradeModal()" class="text-slate-400 hover:text-white text-lg p-1.5"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <form id="trade-form" onsubmit="saveTrade(event)" class="p-5 overflow-y-auto custom-scrollbar space-y-5 flex-1">
+        <input type="hidden" id="form-trade-id">
+
+        <div>
+          <h4 class="text-xs font-bold text-slate-300 uppercase tracking-wider mb-3 flex items-center space-x-1.5">
+            <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+            <span>1. 기본 매매 정보</span>
+          </h4>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div>
+              <label class="block text-xs text-slate-400 mb-1">티커(Ticker) *</label>
+              <input type="text" id="f-ticker" required placeholder="예: NVDA, APP" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white uppercase focus:outline-none focus:border-blue-500">
+            </div>
+            <div>
+              <label class="block text-xs text-slate-400 mb-1">진입일(Entry Date) *</label>
+              <input type="date" id="f-entry-date" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500">
+            </div>
+            <div>
+              <label class="block text-xs text-slate-400 mb-1">매매 상태 *</label>
+              <select id="f-status" onchange="toggleExitFields()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500">
+                <option value="HOLDING">보유중 (Open)</option>
+                <option value="CLOSED">청산 완료 (Closed)</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs text-slate-400 mb-1">매매 방향</label>
+              <select id="f-direction" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500">
+                <option value="LONG">롱 (매수/Long)</option>
+                <option value="SHORT">숏 (인버스/Short)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-700/80">
+          <div class="flex items-center justify-between mb-3">
+            <h4 class="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center space-x-1.5">
+              <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+              <span>2. 가격 및 손익비(Risk/Reward) 계산</span>
+            </h4>
+            <span id="f-rr-display" class="text-xs font-bold px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 border border-blue-500/30">R:R 계산 대기</span>
+          </div>
+
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div>
+              <label class="block text-xs text-slate-400 mb-1">진입가 ($) *</label>
+              <input type="number" step="any" id="f-entry-price" oninput="calculateRR()" required placeholder="0.00" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500">
+            </div>
+            <div>
+              <label class="block text-xs text-slate-400 mb-1">손절가 (Stop Loss) *</label>
+              <input type="number" step="any" id="f-stop-loss" oninput="calculateRR()" required placeholder="0.00" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500">
+            </div>
+            <div>
+              <label class="block text-xs text-slate-400 mb-1">목표가 (Target) *</label>
+              <input type="number" step="any" id="f-target-price" oninput="calculateRR()" required placeholder="0.00" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500">
+            </div>
+            <div>
+              <label class="block text-xs text-slate-400 mb-1">수량 (주)</label>
+              <input type="number" step="any" id="f-shares" oninput="calculateRR()" placeholder="10" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500">
+            </div>
+          </div>
+
+          <div id="exit-fields-box" class="mt-3 pt-3 border-t border-slate-800 grid grid-cols-2 sm:grid-cols-3 gap-3 hidden">
+            <div>
+              <label class="block text-xs text-slate-400 mb-1">청산일(Exit Date)</label>
+              <input type="date" id="f-exit-date" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500">
+            </div>
+            <div>
+              <label class="block text-xs text-slate-400 mb-1">청산가 ($)</label>
+              <input type="number" step="any" id="f-exit-price" placeholder="0.00" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500">
+            </div>
+            <div>
+              <label class="block text-xs text-slate-400 mb-1">실현 손익 결과</label>
+              <select id="f-result-status" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500">
+                <option value="WIN">익절 (Win)</option>
+                <option value="LOSS">손절 (Loss)</option>
+                <option value="BREAKEVEN">본전 (Breakeven)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <h4 class="text-xs font-bold text-slate-300 uppercase tracking-wider mb-3 flex items-center space-x-1.5">
+            <span class="w-2 h-2 rounded-full bg-indigo-500"></span>
+            <span>3. 차트 분석 기반 셋업 (Technical Setup)</span>
+          </h4>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div>
+              <label class="block text-xs text-slate-400 mb-1">차트 패턴/셋업 종류</label>
+              <select id="f-setup-type" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500">
+                <option value="RSI 과매도 반등">RSI 과매도 반등 (RSI Bottom)</option>
+                <option value="주요 이평선 눌림목(Pullback)">주요 이평선 눌림목 (20/50일선)</option>
+                <option value="박스권/전고점 돌파(Breakout)">박스권/전고점 돌파 (Breakout)</option>
+                <option value="이중바닥(Double Bottom)">이중바닥 (Double Bottom/W패턴)</option>
+                <option value="거래량 폭증 추세추종">거래량 폭증 추세추종 (RVOL)</option>
+                <option value="기타">기타 기술적 패턴</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs text-slate-400 mb-1">RSI 지표 수치 (진입시)</label>
+              <input type="text" id="f-rsi-val" placeholder="예: 32 (과매도 다이버전스)" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500">
+            </div>
+            <div>
+              <label class="block text-xs text-slate-400 mb-1">거래량 / 이평선 상태</label>
+              <input type="text" id="f-volume-ma" placeholder="예: 20일선 지지, 평균대비 거래량 1.8배" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500">
+            </div>
+          </div>
+          <div class="mt-3">
+            <label class="block text-xs text-slate-400 mb-1">차트 분석 코멘트 & 지지/저항선 메모</label>
+            <textarea id="f-chart-notes" rows="2" placeholder="진입 근거, 지지선 및 저항선 레벨, 트렌드라인 등을 기록하세요." class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-blue-500"></textarea>
+          </div>
+        </div>
+
+        <div>
+          <h4 class="text-xs font-bold text-slate-300 uppercase tracking-wider mb-3 flex items-center space-x-1.5">
+            <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+            <span>4. Seeking Alpha Premium 리서치 체크</span>
+          </h4>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div>
+              <label class="block text-xs text-slate-400 mb-1">SA Quant Rating</label>
+              <select id="f-sa-quant" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500">
+                <option value="Strong Buy">Strong Buy (4.5~5.0)</option>
+                <option value="Buy" selected>Buy (3.5~4.49)</option>
+                <option value="Hold">Hold (2.5~3.49)</option>
+                <option value="Sell">Sell (1.5~2.49)</option>
+                <option value="Strong Sell">Strong Sell (1.0~1.49)</option>
+                <option value="N/A">평가 없음 (N/A)</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs text-slate-400 mb-1">Wall St. Consensus</label>
+              <input type="text" id="f-sa-wallst" placeholder="예: Buy (4.2)" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500">
+            </div>
+            <div>
+              <label class="block text-xs text-slate-400 mb-1">Factor Grades 핵심 등급</label>
+              <input type="text" id="f-sa-grades" placeholder="예: Growth A, Profit A+, Val C" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500">
+            </div>
+            <div>
+              <label class="block text-xs text-slate-400 mb-1">SA 아티클 링크 또는 제목</label>
+              <input type="text" id="f-sa-link" placeholder="Seeking Alpha 기사 링크/제목" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500">
+            </div>
+          </div>
+          <div class="mt-3">
+            <label class="block text-xs text-slate-400 mb-1">핵심 투자 아이디어 & 촉매(Catalyst)</label>
+            <input type="text" id="f-sa-thesis" placeholder="실적 발표 기대, 신제품 런칭, 애널리스트 상향 조정 등" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500">
+          </div>
+        </div>
+
+        <div>
+          <h4 class="text-xs font-bold text-slate-300 uppercase tracking-wider mb-3 flex items-center space-x-1.5">
+            <span class="w-2 h-2 rounded-full bg-purple-500"></span>
+            <span>5. 매매 복기 및 피드백 (Rule & Psychology Review)</span>
+          </h4>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+            <div class="flex items-center space-x-2 bg-slate-900 p-2 rounded-lg border border-slate-700/60">
+              <input type="checkbox" id="f-rule-checked" class="w-4 h-4 rounded text-blue-600 bg-slate-800 border-slate-700 focus:ring-0">
+              <label for="f-rule-checked" class="text-xs text-slate-300 cursor-pointer">원칙 준수 (손절가/목표가 원칙을 지켰는가?)</label>
+            </div>
+            <div class="flex items-center space-x-2 bg-slate-900 p-2 rounded-lg border border-slate-700/60">
+              <input type="checkbox" id="f-fomo-free" class="w-4 h-4 rounded text-blue-600 bg-slate-800 border-slate-700 focus:ring-0">
+              <label for="f-fomo-free" class="text-xs text-slate-300 cursor-pointer">뇌동매매/FOMO 배제 (계획된 자리에서만 진입)</label>
+            </div>
+          </div>
+          <textarea id="f-review-notes" rows="2" placeholder="잘한 점, 아쉬운 점, 다음 매매에 반영할 교훈을 적어주세요." class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-blue-500"></textarea>
+        </div>
+
+        <div class="pt-4 border-t border-slate-700 flex items-center justify-end space-x-2">
+          <button type="button" onclick="closeTradeModal()" class="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-lg text-xs font-medium transition">취소</button>
+          <button type="submit" class="px-5 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-medium shadow-md shadow-blue-600/30 transition">저장하기</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: ADD / EDIT STUDY NOTE -->
+  <div id="study-modal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-slate-800 border border-slate-700 rounded-2xl max-w-2xl w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+      <div class="p-5 border-b border-slate-700 flex items-center justify-between bg-slate-800/90">
+        <div>
+          <h3 id="study-modal-title" class="text-base font-bold text-white flex items-center space-x-2">
+            <i class="fa-solid fa-book-open-reader text-indigo-400"></i>
+            <span>리서치 & 공부 노트 작성</span>
+          </h3>
+          <p class="text-xs text-slate-400 mt-0.5">Seeking Alpha 분석, 거시경제 지표, 차트 스터디를 기록합니다.</p>
+        </div>
+        <button onclick="closeStudyModal()" class="text-slate-400 hover:text-white text-lg p-1.5"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <form id="study-form" onsubmit="saveStudy(event)" class="p-5 overflow-y-auto custom-scrollbar space-y-4 flex-1">
+        <input type="hidden" id="form-study-id">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div>
+            <label class="block text-xs text-slate-400 mb-1">카테고리 *</label>
+            <select id="s-category" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-indigo-500">
+              <option value="Seeking Alpha 리서치">Seeking Alpha 리서치</option>
+              <option value="차트 패턴 스터디">차트 패턴 스터디</option>
+              <option value="매크로 / 마켓 브리핑">매크로 / 마켓 브리핑</option>
+              <option value="투자 원칙 / 마인드셋">투자 원칙 / 마인드셋</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs text-slate-400 mb-1">날짜 *</label>
+            <input type="date" id="s-date" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-indigo-500">
+          </div>
+          <div>
+            <label class="block text-xs text-slate-400 mb-1">관련 티커(선택)</label>
+            <input type="text" id="s-tickers" placeholder="예: APP, NVDA, SPY" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white uppercase focus:outline-none focus:border-indigo-500">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs text-slate-400 mb-1">노트 제목 *</label>
+          <input type="text" id="s-title" required placeholder="예: AppLovin(APP) 2분기 어닝 후 밸류에이션 및 RSI 바닥 분석" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-indigo-500">
+        </div>
+
+        <div>
+          <label class="block text-xs text-slate-400 mb-1">내용 및 요약 *</label>
+          <textarea id="s-content" rows="8" required placeholder="Seeking Alpha 주요 기사 요약, 핵심 차트 포인트, 향후 매매 전략 등을 자유롭게 정리하세요." class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-xs text-white font-mono focus:outline-none focus:border-indigo-500"></textarea>
+        </div>
+
+        <div class="pt-3 border-t border-slate-700 flex items-center justify-end space-x-2">
+          <button type="button" onclick="closeStudyModal()" class="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-lg text-xs font-medium transition">취소</button>
+          <button type="submit" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-medium shadow-md shadow-indigo-600/30 transition">저장하기</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: DATA BACKUP / RESTORE -->
+  <div id="data-modal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-slate-800 border border-slate-700 rounded-2xl max-w-lg w-full p-5 shadow-2xl space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-700 pb-3">
+        <h3 class="text-sm font-bold text-white flex items-center space-x-2">
+          <i class="fa-solid fa-cloud-arrow-down text-blue-400"></i>
+          <span>데이터 백업 및 복원 (영구 보관)</span>
+        </h3>
+        <button onclick="closeDataModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <p class="text-xs text-slate-300 leading-relaxed">
+        작성하신 모든 매매 일지, 관심종목, 스터디 노트는 현재 브라우저의 <strong>로컬 저장소(LocalStorage)</strong>에 즉시 자동 저장됩니다. 다른 기기나 브라우저에서도 사용하시려면 아래 버튼으로 백업(JSON 파일 다운로드) 후 가져오기 하실 수 있습니다.
+      </p>
+
+      <div class="space-y-3 pt-2">
+        <button onclick="downloadBackupJSON()" class="w-full py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold rounded-lg shadow transition flex items-center justify-center space-x-2">
+          <i class="fa-solid fa-download"></i>
+          <span>전체 데이터 백업 파일(JSON) 다운로드</span>
+        </button>
+
+        <div class="border-t border-slate-700/80 pt-3">
+          <label class="block text-xs font-semibold text-slate-300 mb-2">백업 파일에서 데이터 복원</label>
+          <input type="file" id="backup-file-input" accept=".json" class="block w-full text-xs text-slate-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-slate-700 file:text-white hover:file:bg-slate-600 cursor-pointer">
+        </div>
+        <button onclick="restoreFromJSON()" class="w-full py-2 bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs font-semibold rounded-lg transition">
+          선택한 파일로 데이터 복원하기
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const SAMPLE_WATCHLIST = [
+      {
+        id: "wl_1",
+        ticker: "APP",
+        name: "AppLovin Corp",
+        status: "BUY_ZONE",
+        saQuant: "Strong Buy",
+        saGrades: "Growth A+, Profit A+, Momentum A",
+        saWallSt: "Strong Buy (4.8)",
+        triggerPrice: 84.50,
+        support: 80.00,
+        resistance: 96.00,
+        setupType: "RSI 과매도 반등",
+        notes: "일봉 RSI가 32 수준으로 과매도 구간 도달. 20일선 지지 확인 시 분할 매수 진입."
+      },
+      {
+        id: "wl_2",
+        ticker: "TSLA",
+        name: "Tesla Inc",
+        status: "NEAR_BREAKOUT",
+        saQuant: "Hold",
+        saGrades: "Growth B, Profit A, Val D, Mom A",
+        saWallSt: "Hold (3.4)",
+        triggerPrice: 235.00,
+        support: 215.00,
+        resistance: 240.00,
+        setupType: "박스권/전고점 돌파(Breakout)",
+        notes: "삼각 수렴 패턴 상단 저항선 235달러 돌파 시 대량 거래량 확인 후 불타기 진입 고려."
+      },
+      {
+        id: "wl_3",
+        ticker: "AMZN",
+        name: "Amazon.com Inc",
+        status: "WAITING",
+        saQuant: "Strong Buy",
+        saGrades: "Growth A-, Profit A+, Mom B+",
+        saWallSt: "Strong Buy (4.9)",
+        triggerPrice: 182.00,
+        support: 178.00,
+        resistance: 195.00,
+        setupType: "주요 이평선 눌림목(Pullback)",
+        notes: "AWS 성장률 가속화 호재. 50일선(182달러 근처)까지 건전한 조정 올 때까지 대기."
+      }
+    ];
+
+    const SAMPLE_TRADES = [
+      {
+        id: "tr_1",
+        ticker: "APP",
+        entryDate: "2026-09-02",
+        status: "CLOSED",
+        direction: "LONG",
+        entryPrice: 84.50,
+        stopLoss: 79.80,
+        targetPrice: 96.00,
+        shares: 50,
+        exitDate: "2026-09-10",
+        exitPrice: 95.20,
+        resultStatus: "WIN",
+        setupType: "RSI 과매도 반등",
+        rsiVal: "31 (일봉 과매도 구간 터치 후 반등)",
+        volumeMa: "20일 이평선 지지 확인, 거래량 1.5배 증가",
+        chartNotes: "하락 추세선 상향 돌파 후 되돌림(Pullback)에서 20일선 지지 확인하고 분할 진입.",
+        saQuant: "Strong Buy",
+        saWallSt: "Strong Buy (4.8)",
+        saGrades: "Growth A+, Profit A+, Momentum A",
+        saLink: "Seeking Alpha: AppLovin AI Software Ad Engine Deep Dive",
+        saThesis: "Axon 2.0 엔진 기반 전자상거래 광고 수익화 가속화 및 분기 EPS 서프라이즈 기대",
+        ruleChecked: true,
+        fomoFree: true,
+        reviewNotes: "목표가 근처인 95달러 선에서 분할 익절 완료. 손절선을 명확히 잡고 원칙대로 실행하여 높은 R:R(1:2.3) 달성 성공."
+      },
+      {
+        id: "tr_2",
+        ticker: "NVDA",
+        entryDate: "2026-09-05",
+        status: "HOLDING",
+        direction: "LONG",
+        entryPrice: 122.00,
+        stopLoss: 116.50,
+        targetPrice: 136.00,
+        shares: 40,
+        exitDate: "",
+        exitPrice: null,
+        resultStatus: "",
+        setupType: "박스권/전고점 돌파(Breakout)",
+        rsiVal: "58 (상승 여력 충분)",
+        volumeMa: "50일선 지지 후 박스권 상단 거래량 동반 돌파",
+        chartNotes: "2주간 이어진 120달러 저항선 돌파 양봉 마감 시 진입. 손절선은 돌파 직전 저점인 116.5달러.",
+        saQuant: "Strong Buy",
+        saWallSt: "Buy (4.6)",
+        saGrades: "Growth A+, Profit A+, Momentum B+",
+        saLink: "Seeking Alpha: Data Center Blackwell Ramp Analysis",
+        saThesis: "신규 아키텍처 출하 본격화 및 클라우드 CSP 빅테크들의 CapEx 지속 확대",
+        ruleChecked: true,
+        fomoFree: true,
+        reviewNotes: "현재 목표가 136달러 향해 순항 중. 1차 익절(50%) 후 트레일링 스탑 계획."
+      },
+      {
+        id: "tr_3",
+        ticker: "PLTR",
+        entryDate: "2026-08-28",
+        status: "CLOSED",
+        direction: "LONG",
+        entryPrice: 31.80,
+        stopLoss: 29.90,
+        targetPrice: 36.50,
+        shares: 80,
+        exitDate: "2026-09-04",
+        exitPrice: 35.80,
+        resultStatus: "WIN",
+        setupType: "주요 이평선 눌림목(Pullback)",
+        rsiVal: "44 (중립 회복)",
+        volumeMa: "20일선 터치 후 아래꼬리 달린 양봉",
+        chartNotes: "급등 후 첫 번째 20일선 눌림목 자리. 지지 확인 후 종가 배팅.",
+        saQuant: "Buy",
+        saWallSt: "Hold (3.2)",
+        saGrades: "Growth A, Profit B+, Val F",
+        saLink: "Seeking Alpha: AIP Enterprise Adoption Trend",
+        saThesis: "S&P 500 편입 모멘텀 및 기업용 AIP 부트캠프 계약 증가세",
+        ruleChecked: true,
+        fomoFree: true,
+        reviewNotes: "밸류에이션(Valuation F) 부담이 있으나 모멘텀과 차트 셋업이 훌륭했음. 계획대로 1:2 R:R 도달 시 익절."
+      }
+    ];
+
+    const SAMPLE_STUDY = [
+      {
+        id: "st_1",
+        date: "2026-09-12",
+        category: "Seeking Alpha 리서치",
+        tickers: "APP",
+        title: "AppLovin(APP) 소프트웨어 플랫폼 성장률 및 RSI 바닥 확인 전략",
+        content: "■ Seeking Alpha 핵심 지표 요약
+- Quant Rating: Strong Buy (4.92 / 5.00)
+- Factor Grades: Growth A+, Profitability A+, Momentum A, EPS Revisions A+
+- Wall Street Consensus: Strong Buy
+
+■ 주요 투자 포인트 (SA Premium 분석 요약)
+1. 게임 비즈니스에서 비게임(이커머스 광고)으로의 성공적 확장
+2. AI 엔진 Axon 2.0 도입 이후 광고주 ROI가 비약적으로 증가하여 ROAS 극대화
+3. 잉여현금흐름(FCF) 전환율이 40% 이상으로 압도적 현금 창출력 보유
+
+■ 기술적 차트 전략 접목
+- 일봉 기준 RSI가 30 근처(30~35)로 하락할 때마다 강한 반등 패턴 출현
+- 50일 또는 20일 이동평균선과 RSI 과매도가 겹치는 자리가 최적의 스윙 진입 포인트
+- 손절선은 직전 최저점 -2%로 타이트하게 설정하여 손익비 1:3 확보 목표."
+      },
+      {
+        id: "st_2",
+        date: "2026-09-08",
+        category: "매크로 / 마켓 브리핑",
+        tickers: "SPY, QQQ",
+        title: "9월 시장 계절성(Seasonality) 대응 및 주간 매매 빈도 조절 원칙",
+        content: "■ 9월 증시 특징
+- 역사적으로 9월은 변동성이 크고 주요 지수 조정 확률이 높은 달.
+- FOMC 금리 결정 및 CPI 물가 지표 발표 전후로 급등락 주의.
+
+■ 나의 매매 운영 방침
+1. 월 20회(주당 4~5회) 트레이딩 원칙 유지하되, 무리한 추격 매수 엄격히 금지
+2. 차트상 확실한 지지선(Support)이 확인된 종목에 한해서만 진입
+3. 현금 비중 30% 상시 유지로 급락 시 바닥 반등 기회 대비"
+      }
+    ];
+
+    const TRADES_KEY = "alphachart_trades_data";
+    const WATCHLIST_KEY = "alphachart_watchlist_data";
+    const STUDY_KEY = "alphachart_study_data";
+
+    let trades = [];
+    let watchlist = [];
+    let studies = [];
+
+    function init() {
+      const storedTrades = localStorage.getItem(TRADES_KEY);
+      const storedWatchlist = localStorage.getItem(WATCHLIST_KEY);
+      const storedStudy = localStorage.getItem(STUDY_KEY);
+
+      if (storedTrades) {
+        try { trades = JSON.parse(storedTrades); } catch (e) { trades = SAMPLE_TRADES; }
+      } else {
+        trades = SAMPLE_TRADES;
+        saveTradesToStorage();
+      }
+
+      if (storedWatchlist) {
+        try { watchlist = JSON.parse(storedWatchlist); } catch (e) { watchlist = SAMPLE_WATCHLIST; }
+      } else {
+        watchlist = SAMPLE_WATCHLIST;
+        saveWatchlistToStorage();
+      }
+
+      if (storedStudy) {
+        try { studies = JSON.parse(storedStudy); } catch (e) { studies = SAMPLE_STUDY; }
+      } else {
+        studies = SAMPLE_STUDY;
+        saveStudyToStorage();
+      }
+
+      const todayStr = new Date().toISOString().split('T')[0];
+      const entryDateEl = document.getElementById('f-entry-date');
+      const studyDateEl = document.getElementById('s-date');
+      if (entryDateEl) entryDateEl.value = todayStr;
+      if (studyDateEl) studyDateEl.value = todayStr;
+
+      refreshAllViews();
+    }
+
+    function saveTradesToStorage() {
+      localStorage.setItem(TRADES_KEY, JSON.stringify(trades));
+    }
+
+    function saveWatchlistToStorage() {
+      localStorage.setItem(WATCHLIST_KEY, JSON.stringify(watchlist));
+      const badge = document.getElementById('nav-watchlist-badge');
+      if (badge) badge.innerText = watchlist.length;
+    }
+
+    function saveStudyToStorage() {
+      localStorage.setItem(STUDY_KEY, JSON.stringify(studies));
+    }
+
+    function refreshAllViews() {
+      renderDashboardStats();
+      renderRecentTrades();
+      renderSetupBreakdown();
+      renderWatchlist();
+      renderTradesTable();
+      renderStudyNotes();
+    }
+
+    function switchTab(tabId) {
+      document.getElementById('tab-dashboard').classList.add('hidden');
+      document.getElementById('tab-watchlist').classList.add('hidden');
+      document.getElementById('tab-trades').classList.add('hidden');
+      document.getElementById('tab-study').classList.add('hidden');
+
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.classList.remove('bg-blue-600', 'text-white');
+        btn.classList.add('text-slate-300');
+      });
+
+      document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+      const activeBtn = document.getElementById(`nav-${tabId}`);
+      if (activeBtn) {
+        activeBtn.classList.remove('text-slate-300');
+        activeBtn.classList.add('bg-blue-600', 'text-white');
+      }
+
+      if (tabId === 'dashboard') {
+        renderDashboardStats();
+        renderRecentTrades();
+        renderSetupBreakdown();
+      } else if (tabId === 'watchlist') {
+        renderWatchlist();
+      } else if (tabId === 'trades') {
+        renderTradesTable();
+      } else if (tabId === 'study') {
+        renderStudyNotes();
+      }
+    }
+
+    function renderDashboardStats() {
+      const currentMonth = new Date().toISOString().slice(0, 7);
+      const monthlyTrades = trades.filter(t => (t.entryDate && t.entryDate.startsWith(currentMonth)));
+      const count = monthlyTrades.length;
+      document.getElementById('stat-monthly-count').innerText = count;
+
+      const progress = Math.min(Math.round((count / 20) * 100), 100);
+      document.getElementById('stat-progress-bar').style.width = `${progress}%`;
+
+      const closedTrades = trades.filter(t => t.status === 'CLOSED');
+      const winTrades = closedTrades.filter(t => t.resultStatus === 'WIN');
+      const lossTrades = closedTrades.filter(t => t.resultStatus === 'LOSS');
+
+      const winRate = closedTrades.length > 0 ? Math.round((winTrades.length / closedTrades.length) * 100) : 0;
+      document.getElementById('stat-win-rate').innerText = `${winRate}%`;
+      document.getElementById('stat-win-count').innerText = `(${winTrades.length}승 ${lossTrades.length}패)`;
+
+      let totalPnl = 0;
+      let totalReturnPct = 0;
+      let pnlCount = 0;
+
+      closedTrades.forEach(t => {
+        if (t.entryPrice && t.exitPrice && t.shares) {
+          const pnl = (t.exitPrice - t.entryPrice) * t.shares * (t.direction === 'SHORT' ? -1 : 1);
+          totalPnl += pnl;
+          const retPct = ((t.exitPrice - t.entryPrice) / t.entryPrice) * 100 * (t.direction === 'SHORT' ? -1 : 1);
+          totalReturnPct += retPct;
+          pnlCount++;
+        }
+      });
+
+      const pnlEl = document.getElementById('stat-total-pnl');
+      pnlEl.innerText = `${totalPnl >= 0 ? '+' : ''}$${totalPnl.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+      pnlEl.className = `text-3xl font-bold ${totalPnl >= 0 ? 'text-emerald-400' : 'text-rose-400'}`;
+
+      const avgRet = pnlCount > 0 ? (totalReturnPct / pnlCount).toFixed(1) : "0.0";
+      document.getElementById('stat-avg-return').innerText = `평균 수익률: ${avgRet >= 0 ? '+' : ''}${avgRet}% (${pnlCount}건 청산)`;
+
+      const readyCount = watchlist.filter(w => w.status === 'BUY_ZONE' || w.status === 'NEAR_BREAKOUT').length;
+      document.getElementById('stat-ready-watchlist').innerText = readyCount;
+    }
+
+    function renderRecentTrades() {
+      const tbody = document.getElementById('recent-trades-body');
+      tbody.innerHTML = "";
+
+      const sorted = [...trades].sort((a, b) => new Date(b.entryDate) - new Date(a.entryDate)).slice(0, 5);
+
+      if (sorted.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" class="py-6 text-center text-slate-500">등록된 매매가 없습니다.</td></tr>`;
+        return;
+      }
+
+      sorted.forEach(t => {
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-slate-700/40 transition cursor-pointer";
+        tr.onclick = () => editTrade(t.id);
+
+        let pnlText = "-";
+        let pnlClass = "text-slate-400";
+        if (t.status === 'CLOSED' && t.entryPrice && t.exitPrice) {
+          const pnl = (t.exitPrice - t.entryPrice) * (t.shares || 1) * (t.direction === 'SHORT' ? -1 : 1);
+          const pct = ((t.exitPrice - t.entryPrice) / t.entryPrice) * 100 * (t.direction === 'SHORT' ? -1 : 1);
+          pnlText = `${pnl >= 0 ? '+' : ''}$${pnl.toFixed(1)} (${pct >= 0 ? '+' : ''}${pct.toFixed(1)}%)`;
+          pnlClass = pnl >= 0 ? "text-emerald-400 font-semibold" : "text-rose-400 font-semibold";
+        }
+
+        const risk = Math.abs(t.entryPrice - t.stopLoss);
+        const reward = Math.abs(t.targetPrice - t.entryPrice);
+        const rr = (risk > 0 && reward > 0) ? `1:${(reward/risk).toFixed(1)}` : "-";
+
+        tr.innerHTML = `
+          <td class="py-2 px-3 text-slate-400">${t.entryDate || '-'}</td>
+          <td class="py-2 px-3 font-bold text-white">${t.ticker}</td>
+          <td class="py-2 px-3">
+            <span class="px-1.5 py-0.5 rounded text-[10px] font-semibold ${t.saQuant.includes('Strong Buy') ? 'bg-emerald-900/60 text-emerald-300 border border-emerald-500/40' : t.saQuant.includes('Buy') ? 'bg-blue-900/60 text-blue-300 border border-blue-500/40' : 'bg-slate-700 text-slate-300'}">
+              ${t.saQuant}
+            </span>
+          </td>
+          <td class="py-2 px-3 text-slate-300">${t.setupType || '-'}</td>
+          <td class="py-2 px-3 text-indigo-300 font-medium">${rr}</td>
+          <td class="py-2 px-3">
+            <span class="px-1.5 py-0.5 rounded text-[10px] font-medium ${t.status === 'HOLDING' ? 'bg-amber-500/20 text-amber-300' : t.resultStatus === 'WIN' ? 'bg-emerald-500/20 text-emerald-300' : 'bg-rose-500/20 text-rose-300'}">
+              ${t.status === 'HOLDING' ? '보유중' : t.resultStatus === 'WIN' ? '익절' : '손절'}
+            </span>
+          </td>
+          <td class="py-2 px-3 text-right ${pnlClass}">${pnlText}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function renderSetupBreakdown() {
+      const container = document.getElementById('setup-breakdown-list');
+      container.innerHTML = "";
+
+      const setupStats = {};
+      trades.forEach(t => {
+        const setup = t.setupType || "기타";
+        if (!setupStats[setup]) {
+          setupStats[setup] = { total: 0, wins: 0 };
+        }
+        setupStats[setup].total++;
+        if (t.resultStatus === 'WIN') setupStats[setup].wins++;
+      });
+
+      const setups = Object.keys(setupStats).sort((a, b) => setupStats[b].total - setupStats[a].total);
+
+      if (setups.length === 0) {
+        container.innerHTML = `<p class="text-xs text-slate-500">데이터가 없습니다.</p>`;
+        return;
+      }
+
+      setups.forEach(setup => {
+        const s = setupStats[setup];
+        const winPct = s.total > 0 ? Math.round((s.wins / s.total) * 100) : 0;
+
+        const div = document.createElement('div');
+        div.className = "text-xs space-y-1";
+        div.innerHTML = `
+          <div class="flex justify-between items-center text-slate-300">
+            <span class="font-medium">${setup}</span>
+            <span class="text-slate-400 font-mono">${s.wins}승 / ${s.total}회 (${winPct}%)</span>
+          </div>
+          <div class="w-full bg-slate-900 h-1.5 rounded-full overflow-hidden">
+            <div class="bg-indigo-500 h-full rounded-full" style="width: ${winPct}%"></div>
+          </div>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function renderWatchlist() {
+      const container = document.getElementById('watchlist-cards-container');
+      container.innerHTML = "";
+
+      const query = (document.getElementById('search-watchlist')?.value || "").toUpperCase().trim();
+      const statusFilter = document.getElementById('filter-watchlist-status')?.value || 'ALL';
+
+      const filtered = watchlist.filter(item => {
+        if (query && !item.ticker.includes(query) && !(item.name || "").toUpperCase().includes(query)) return false;
+        if (statusFilter !== 'ALL' && item.status !== statusFilter) return false;
+        return true;
+      });
+
+      const badge = document.getElementById('nav-watchlist-badge');
+      if (badge) badge.innerText = watchlist.length;
+
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div class="col-span-full py-12 text-center text-slate-500 bg-slate-800/60 rounded-xl border border-dashed border-slate-700">
+            <i class="fa-solid fa-binoculars text-3xl mb-2 text-slate-600 block"></i>
+            조건에 일치하는 관심종목이 없습니다. '관심종목 추가' 버튼을 눌러 등록해보세요.
+          </div>
+        `;
+        return;
+      }
+
+      filtered.forEach(item => {
+        const card = document.createElement('div');
+        card.className = "bg-slate-800 border border-slate-700 rounded-xl p-5 shadow-sm space-y-3 hover:border-slate-600 transition flex flex-col justify-between";
+
+        let statusBadge = '';
+        if (item.status === 'BUY_ZONE') {
+          statusBadge = '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 animate-pulse"><i class="fa-solid fa-circle-check mr-1"></i>매수 영역 도달</span>';
+        } else if (item.status === 'NEAR_BREAKOUT') {
+          statusBadge = '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40"><i class="fa-solid fa-bolt mr-1"></i>돌파 임박</span>';
+        } else if (item.status === 'WAITING') {
+          statusBadge = '<span class="px-2 py-0.5 rounded text-[10px] font-medium bg-blue-500/20 text-blue-300 border border-blue-500/40">셋업 대기</span>';
+        } else {
+          statusBadge = '<span class="px-2 py-0.5 rounded text-[10px] font-medium bg-slate-700 text-slate-300">일반 관찰</span>';
+        }
+
+        const quantBadge = item.saQuant?.includes('Strong Buy') ? 'bg-emerald-950/70 text-emerald-300 border-emerald-600/40' :
+                           item.saQuant?.includes('Buy') ? 'bg-blue-950/70 text-blue-300 border-blue-600/40' :
+                           'bg-slate-700 text-slate-300 border-slate-600';
+
+        card.innerHTML = `
+          <div>
+            <div class="flex items-start justify-between">
+              <div>
+                <div class="flex items-center space-x-2">
+                  <span class="text-base font-bold text-white tracking-wide">${item.ticker}</span>
+                  <span class="text-xs text-slate-400 font-medium">${item.name || ''}</span>
+                </div>
+                <div class="mt-1 flex items-center space-x-2">
+                  ${statusBadge}
+                  <span class="px-2 py-0.5 rounded text-[10px] font-semibold border ${quantBadge}">SA ${item.saQuant}</span>
+                </div>
+              </div>
+              <div class="flex items-center space-x-1">
+                <button onclick="editWatchlist('${item.id}')" class="text-slate-400 hover:text-amber-400 p-1 text-xs" title="수정"><i class="fa-solid fa-pen"></i></button>
+                <button onclick="deleteWatchlist('${item.id}')" class="text-slate-400 hover:text-rose-400 p-1 text-xs" title="삭제"><i class="fa-solid fa-trash-can"></i></button>
+              </div>
+            </div>
+
+            <div class="mt-3.5 grid grid-cols-3 gap-2 bg-slate-900/80 p-2.5 rounded-lg border border-slate-700/60 text-center font-mono">
+              <div>
+                <span class="text-[10px] text-slate-400 block">감시 기준가</span>
+                <span class="text-xs font-bold text-amber-300">$${Number(item.triggerPrice || 0).toFixed(2)}</span>
+              </div>
+              <div>
+                <span class="text-[10px] text-slate-400 block">지지선</span>
+                <span class="text-xs text-emerald-400">${item.support ? '$' + Number(item.support).toFixed(2) : '-'}</span>
+              </div>
+              <div>
+                <span class="text-[10px] text-slate-400 block">저항선</span>
+                <span class="text-xs text-rose-400">${item.resistance ? '$' + Number(item.resistance).toFixed(2) : '-'}</span>
+              </div>
+            </div>
+
+            <div class="mt-2.5 space-y-1 text-xs text-slate-300">
+              <div class="flex items-center space-x-1.5 text-slate-400">
+                <i class="fa-solid fa-chart-simple text-blue-400 text-[11px]"></i>
+                <span class="font-medium text-slate-200">기대 셋업:</span>
+                <span>${item.setupType || '-'}</span>
+              </div>
+              ${item.saGrades ? `
+              <div class="flex items-center space-x-1.5 text-slate-400">
+                <i class="fa-solid fa-layer-group text-amber-400 text-[11px]"></i>
+                <span class="font-medium text-slate-200">Factor Grades:</span>
+                <span class="text-slate-300">${item.saGrades}</span>
+              </div>` : ''}
+              ${item.notes ? `
+              <p class="mt-1 text-[11px] text-slate-400 bg-slate-800/80 p-2 rounded border border-slate-700/40 leading-relaxed">${item.notes}</p>` : ''}
+            </div>
+          </div>
+
+          <div class="pt-3 border-t border-slate-700/80 flex items-center justify-between">
+            <span class="text-[11px] text-slate-400">타점 도달 시 매매 실행:</span>
+            <button onclick="convertWatchlistToTrade('${item.id}')" class="px-3 py-1.5 bg-emerald-600/90 hover:bg-emerald-500 text-white rounded-lg text-xs font-semibold shadow transition flex items-center space-x-1.5">
+              <i class="fa-solid fa-arrow-right-to-bracket"></i>
+              <span>매매 일지로 전환</span>
+            </button>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function openWatchlistModal(id = null) {
+      document.getElementById('watchlist-modal').classList.remove('hidden');
+      const form = document.getElementById('watchlist-form');
+      form.reset();
+
+      if (id) {
+        document.getElementById('watchlist-modal-title').innerHTML = `<i class="fa-solid fa-binoculars text-amber-400"></i><span> 관심종목 수정</span>`;
+        const item = watchlist.find(w => w.id === id);
+        if (item) {
+          document.getElementById('w-form-id').value = item.id;
+          document.getElementById('w-ticker').value = item.ticker;
+          document.getElementById('w-name').value = item.name || '';
+          document.getElementById('w-status').value = item.status;
+          document.getElementById('w-sa-quant').value = item.saQuant || 'Buy';
+          document.getElementById('w-sa-grades').value = item.saGrades || '';
+          document.getElementById('w-sa-wallst').value = item.saWallSt || '';
+          document.getElementById('w-trigger-price').value = item.triggerPrice || '';
+          document.getElementById('w-support').value = item.support || '';
+          document.getElementById('w-resistance').value = item.resistance || '';
+          document.getElementById('w-setup-type').value = item.setupType || 'RSI 과매도 반등';
+          document.getElementById('w-notes').value = item.notes || '';
+        }
+      } else {
+        document.getElementById('watchlist-modal-title').innerHTML = `<i class="fa-solid fa-binoculars text-amber-400"></i><span> 새 관심종목 등록</span>`;
+        document.getElementById('w-form-id').value = '';
+      }
+    }
+
+    function closeWatchlistModal() {
+      document.getElementById('watchlist-modal').classList.add('hidden');
+    }
+
+    function saveWatchlist(e) {
+      e.preventDefault();
+      const id = document.getElementById('w-form-id').value || ("wl_" + Date.now());
+      const itemObj = {
+        id: id,
+        ticker: document.getElementById('w-ticker').value.toUpperCase().trim(),
+        name: document.getElementById('w-name').value.trim(),
+        status: document.getElementById('w-status').value,
+        saQuant: document.getElementById('w-sa-quant').value,
+        saGrades: document.getElementById('w-sa-grades').value.trim(),
+        saWallSt: document.getElementById('w-sa-wallst').value.trim(),
+        triggerPrice: parseFloat(document.getElementById('w-trigger-price').value) || 0,
+        support: parseFloat(document.getElementById('w-support').value) || null,
+        resistance: parseFloat(document.getElementById('w-resistance').value) || null,
+        setupType: document.getElementById('w-setup-type').value,
+        notes: document.getElementById('w-notes').value.trim()
+      };
+
+      const idx = watchlist.findIndex(w => w.id === id);
+      if (idx >= 0) {
+        watchlist[idx] = itemObj;
+      } else {
+        watchlist.unshift(itemObj);
+      }
+
+      saveWatchlistToStorage();
+      closeWatchlistModal();
+      renderWatchlist();
+      renderDashboardStats();
+    }
+
+    function editWatchlist(id) {
+      openWatchlistModal(id);
+    }
+
+    function deleteWatchlist(id) {
+      if (confirm("이 관심종목을 목록에서 삭제하시겠습니까?")) {
+        watchlist = watchlist.filter(w => w.id !== id);
+        saveWatchlistToStorage();
+        renderWatchlist();
+        renderDashboardStats();
+      }
+    }
+
+    function convertWatchlistToTrade(watchlistId) {
+      const item = watchlist.find(w => w.id === watchlistId);
+      if (!item) return;
+
+      openTradeModal();
+      document.getElementById('f-ticker').value = item.ticker;
+      document.getElementById('f-entry-price').value = item.triggerPrice || '';
+      if (item.support) document.getElementById('f-stop-loss').value = item.support;
+      if (item.resistance) document.getElementById('f-target-price').value = item.resistance;
+      document.getElementById('f-setup-type').value = item.setupType || 'RSI 과매도 반등';
+      document.getElementById('f-sa-quant').value = item.saQuant || 'Buy';
+      document.getElementById('f-sa-grades').value = item.saGrades || '';
+      document.getElementById('f-sa-wallst').value = item.saWallSt || '';
+      document.getElementById('f-chart-notes').value = `[관심종목 전환] ${item.notes || ''} (지지선: $${item.support || '-'}, 저항선: $${item.resistance || '-'})`;
+      
+      calculateRR();
+      switchTab('trades');
+    }
+
+    function renderTradesTable() {
+      const tbody = document.getElementById('trades-table-body');
+      tbody.innerHTML = "";
+
+      const searchTicker = (document.getElementById('search-ticker')?.value || "").toUpperCase().trim();
+      const filterStatus = document.getElementById('filter-status')?.value || 'ALL';
+      const filterSetup = document.getElementById('filter-setup')?.value || 'ALL';
+
+      const filtered = trades.filter(t => {
+        if (searchTicker && !t.ticker.includes(searchTicker)) return false;
+        if (filterStatus !== 'ALL') {
+          if (filterStatus === 'HOLDING' && t.status !== 'HOLDING') return false;
+          if (filterStatus === 'WIN' && t.resultStatus !== 'WIN') return false;
+          if (filterStatus === 'LOSS' && t.resultStatus !== 'LOSS') return false;
+          if (filterStatus === 'BREAKEVEN' && t.resultStatus !== 'BREAKEVEN') return false;
+        }
+        if (filterSetup !== 'ALL' && t.setupType !== filterSetup) return false;
+        return true;
+      });
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="12" class="py-8 text-center text-slate-500">조건에 일치하는 매매 내역이 없습니다.</td></tr>`;
+        return;
+      }
+
+      filtered.forEach(t => {
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-slate-700/50 transition";
+
+        const risk = Math.abs(t.entryPrice - t.stopLoss);
+        const reward = Math.abs(t.targetPrice - t.entryPrice);
+        const rr = (risk > 0 && reward > 0) ? `1 : ${(reward/risk).toFixed(1)}` : "-";
+
+        let retPctStr = "-";
+        let pnlStr = "-";
+        let pnlColor = "text-slate-400";
+
+        if (t.status === 'CLOSED' && t.entryPrice && t.exitPrice) {
+          const retPct = ((t.exitPrice - t.entryPrice) / t.entryPrice) * 100 * (t.direction === 'SHORT' ? -1 : 1);
+          const pnl = (t.exitPrice - t.entryPrice) * (t.shares || 1) * (t.direction === 'SHORT' ? -1 : 1);
+          retPctStr = `${retPct >= 0 ? '+' : ''}${retPct.toFixed(1)}%`;
+          pnlStr = `${pnl >= 0 ? '+' : ''}$${pnl.toFixed(2)}`;
+          pnlColor = pnl >= 0 ? "text-emerald-400 font-semibold" : "text-rose-400 font-semibold";
+        }
+
+        tr.innerHTML = `
+          <td class="py-3 px-4 text-slate-400 whitespace-nowrap">${t.entryDate || '-'}</td>
+          <td class="py-3 px-3 font-bold text-white">${t.ticker}</td>
+          <td class="py-3 px-3 whitespace-nowrap">
+            <span class="px-2 py-0.5 rounded text-[11px] font-medium ${t.status === 'HOLDING' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' : t.resultStatus === 'WIN' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : 'bg-rose-500/20 text-rose-300 border border-rose-500/30'}">
+              ${t.status === 'HOLDING' ? '보유중' : t.resultStatus === 'WIN' ? '익절' : t.resultStatus === 'LOSS' ? '손절' : '본전'}
+            </span>
+          </td>
+          <td class="py-3 px-3 text-slate-300">${t.setupType}</td>
+          <td class="py-3 px-3">
+            <span class="px-1.5 py-0.5 rounded text-[10px] font-medium bg-slate-700 text-slate-300">${t.saQuant}</span>
+          </td>
+          <td class="py-3 px-3 font-mono text-slate-200">$${Number(t.entryPrice).toFixed(2)}</td>
+          <td class="py-3 px-3 font-mono text-[11px]">
+            <span class="text-rose-400">$${Number(t.stopLoss).toFixed(2)}</span> / 
+            <span class="text-emerald-400">$${Number(t.targetPrice).toFixed(2)}</span>
+          </td>
+          <td class="py-3 px-3 font-mono text-slate-300">${t.exitPrice ? '$' + Number(t.exitPrice).toFixed(2) : '-'}</td>
+          <td class="py-3 px-3 text-indigo-300 font-medium">${rr}</td>
+          <td class="py-3 px-3 text-right font-mono ${pnlColor}">${retPctStr}</td>
+          <td class="py-3 px-3 text-right font-mono ${pnlColor}">${pnlStr}</td>
+          <td class="py-3 px-4 text-center whitespace-nowrap">
+            <button onclick="editTrade('${t.id}')" class="text-blue-400 hover:text-blue-300 px-1.5 py-1" title="수정"><i class="fa-solid fa-pen"></i></button>
+            <button onclick="deleteTrade('${t.id}')" class="text-rose-400 hover:text-rose-300 px-1.5 py-1 ml-1" title="삭제"><i class="fa-solid fa-trash-can"></i></button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function renderStudyNotes() {
+      const container = document.getElementById('study-notes-container');
+      container.innerHTML = "";
+
+      if (studies.length === 0) {
+        container.innerHTML = `<div class="col-span-2 py-10 text-center text-slate-500">등록된 스터디 노트가 없습니다. '새 공부/리서치 노트 작성'을 눌러보세요.</div>`;
+        return;
+      }
+
+      studies.forEach(s => {
+        const card = document.createElement('div');
+        card.className = "bg-slate-800 border border-slate-700 rounded-xl p-5 shadow-sm space-y-3 relative group";
+
+        const badgeColor = s.category.includes('Seeking Alpha') ? 'bg-amber-500/20 text-amber-300 border-amber-500/30' :
+                           s.category.includes('차트') ? 'bg-blue-500/20 text-blue-300 border-blue-500/30' :
+                           'bg-emerald-500/20 text-emerald-300 border-emerald-500/30';
+
+        card.innerHTML = `
+          <div class="flex items-start justify-between">
+            <div class="flex items-center space-x-2">
+              <span class="px-2 py-0.5 rounded text-[10px] font-semibold border ${badgeColor}">${s.category}</span>
+              <span class="text-xs text-slate-400">${s.date}</span>
+              ${s.tickers ? `<span class="text-xs font-bold text-slate-200 bg-slate-900 px-2 py-0.5 rounded border border-slate-700">${s.tickers}</span>` : ''}
+            </div>
+            <div class="flex items-center space-x-1">
+              <button onclick="editStudy('${s.id}')" class="text-slate-400 hover:text-blue-400 p-1 text-xs"><i class="fa-solid fa-pen"></i></button>
+              <button onclick="deleteStudy('${s.id}')" class="text-slate-400 hover:text-rose-400 p-1 text-xs"><i class="fa-solid fa-trash-can"></i></button>
+            </div>
+          </div>
+          <h4 class="text-sm font-bold text-white">${s.title}</h4>
+          <p class="text-xs text-slate-300 whitespace-pre-line leading-relaxed font-sans">${s.content}</p>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function openTradeModal(tradeId = null) {
+      document.getElementById('trade-modal').classList.remove('hidden');
+      const form = document.getElementById('trade-form');
+      form.reset();
+
+      if (tradeId) {
+        document.getElementById('trade-modal-title').innerHTML = `<i class="fa-solid fa-pen-nib text-blue-400"></i><span> 매매 기록 수정</span>`;
+        const t = trades.find(item => item.id === tradeId);
+        if (t) {
+          document.getElementById('form-trade-id').value = t.id;
+          document.getElementById('f-ticker').value = t.ticker;
+          document.getElementById('f-entry-date').value = t.entryDate;
+          document.getElementById('f-status').value = t.status;
+          document.getElementById('f-direction').value = t.direction || "LONG";
+          document.getElementById('f-entry-price').value = t.entryPrice;
+          document.getElementById('f-stop-loss').value = t.stopLoss;
+          document.getElementById('f-target-price').value = t.targetPrice;
+          document.getElementById('f-shares').value = t.shares || "";
+          document.getElementById('f-exit-date').value = t.exitDate || "";
+          document.getElementById('f-exit-price').value = t.exitPrice || "";
+          document.getElementById('f-result-status').value = t.resultStatus || "WIN";
+          document.getElementById('f-setup-type').value = t.setupType;
+          document.getElementById('f-rsi-val').value = t.rsiVal || "";
+          document.getElementById('f-volume-ma').value = t.volumeMa || "";
+          document.getElementById('f-chart-notes').value = t.chartNotes || "";
+          document.getElementById('f-sa-quant').value = t.saQuant;
+          document.getElementById('f-sa-wallst').value = t.saWallSt || "";
+          document.getElementById('f-sa-grades').value = t.saGrades || "";
+          document.getElementById('f-sa-link').value = t.saLink || "";
+          document.getElementById('f-sa-thesis').value = t.saThesis || "";
+          document.getElementById('f-rule-checked').checked = !!t.ruleChecked;
+          document.getElementById('f-fomo-free').checked = !!t.fomoFree;
+          document.getElementById('f-review-notes').value = t.reviewNotes || "";
+        }
+      } else {
+        document.getElementById('trade-modal-title').innerHTML = `<i class="fa-solid fa-pen-nib text-blue-400"></i><span> 새 매매 기록 작성</span>`;
+        document.getElementById('form-trade-id').value = "";
+        document.getElementById('f-entry-date').value = new Date().toISOString().split('T')[0];
+      }
+      toggleExitFields();
+      calculateRR();
+    }
+
+    function closeTradeModal() {
+      document.getElementById('trade-modal').classList.add('hidden');
+    }
+
+    function toggleExitFields() {
+      const status = document.getElementById('f-status').value;
+      const exitBox = document.getElementById('exit-fields-box');
+      if (status === 'CLOSED') {
+        exitBox.classList.remove('hidden');
+      } else {
+        exitBox.classList.add('hidden');
+      }
+    }
+
+    function calculateRR() {
+      const entry = parseFloat(document.getElementById('f-entry-price').value);
+      const stop = parseFloat(document.getElementById('f-stop-loss').value);
+      const target = parseFloat(document.getElementById('f-target-price').value);
+      const display = document.getElementById('f-rr-display');
+
+      if (!isNaN(entry) && !isNaN(stop) && !isNaN(target)) {
+        const risk = Math.abs(entry - stop);
+        const reward = Math.abs(target - entry);
+        if (risk > 0) {
+          const ratio = (reward / risk).toFixed(2);
+          display.innerText = `손익비: 1 : ${ratio}`;
+          if (ratio >= 2.0) {
+            display.className = "text-xs font-bold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/40";
+          } else {
+            display.className = "text-xs font-bold px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40";
+          }
+          return;
+        }
+      }
+      display.innerText = "손익비 계산 대기";
+      display.className = "text-xs font-bold px-2 py-0.5 rounded bg-slate-700 text-slate-400";
+    }
+
+    function saveTrade(e) {
+      e.preventDefault();
+      const id = document.getElementById('form-trade-id').value || ("tr_" + Date.now());
+      const status = document.getElementById('f-status').value;
+      const entryPrice = parseFloat(document.getElementById('f-entry-price').value) || 0;
+      const stopLoss = parseFloat(document.getElementById('f-stop-loss').value) || 0;
+      const targetPrice = parseFloat(document.getElementById('f-target-price').value) || 0;
+      const exitPriceVal = parseFloat(document.getElementById('f-exit-price').value);
+
+      const tradeObj = {
+        id: id,
+        ticker: document.getElementById('f-ticker').value.toUpperCase().trim(),
+        entryDate: document.getElementById('f-entry-date').value,
+        status: status,
+        direction: document.getElementById('f-direction').value,
+        entryPrice: entryPrice,
+        stopLoss: stopLoss,
+        targetPrice: targetPrice,
+        shares: parseFloat(document.getElementById('f-shares').value) || 0,
+        exitDate: status === 'CLOSED' ? document.getElementById('f-exit-date').value : "",
+        exitPrice: (status === 'CLOSED' && !isNaN(exitPriceVal)) ? exitPriceVal : null,
+        resultStatus: status === 'CLOSED' ? document.getElementById('f-result-status').value : "",
+        setupType: document.getElementById('f-setup-type').value,
+        rsiVal: document.getElementById('f-rsi-val').value,
+        volumeMa: document.getElementById('f-volume-ma').value,
+        chartNotes: document.getElementById('f-chart-notes').value,
+        saQuant: document.getElementById('f-sa-quant').value,
+        saWallSt: document.getElementById('f-sa-wallst').value,
+        saGrades: document.getElementById('f-sa-grades').value,
+        saLink: document.getElementById('f-sa-link').value,
+        saThesis: document.getElementById('f-sa-thesis').value,
+        ruleChecked: document.getElementById('f-rule-checked').checked,
+        fomoFree: document.getElementById('f-fomo-free').checked,
+        reviewNotes: document.getElementById('f-review-notes').value
+      };
+
+      const idx = trades.findIndex(item => item.id === id);
+      if (idx >= 0) {
+        trades[idx] = tradeObj;
+      } else {
+        trades.unshift(tradeObj);
+      }
+
+      saveTradesToStorage();
+      closeTradeModal();
+      refreshAllViews();
+    }
+
+    function editTrade(id) {
+      openTradeModal(id);
+    }
+
+    function deleteTrade(id) {
+      if (confirm("이 매매 기록을 정말 삭제하시겠습니까?")) {
+        trades = trades.filter(t => t.id !== id);
+        saveTradesToStorage();
+        refreshAllViews();
+      }
+    }
+
+    function openStudyModal(studyId = null) {
+      document.getElementById('study-modal').classList.remove('hidden');
+      const form = document.getElementById('study-form');
+      form.reset();
+
+      if (studyId) {
+        document.getElementById('study-modal-title').innerText = "리서치 & 공부 노트 수정";
+        const s = studies.find(item => item.id === studyId);
+        if (s) {
+          document.getElementById('form-study-id').value = s.id;
+          document.getElementById('s-category').value = s.category;
+          document.getElementById('s-date').value = s.date;
+          document.getElementById('s-tickers').value = s.tickers || "";
+          document.getElementById('s-title').value = s.title;
+          document.getElementById('s-content').value = s.content;
+        }
+      } else {
+        document.getElementById('study-modal-title').innerText = "리서치 & 공부 노트 작성";
+        document.getElementById('form-study-id').value = "";
+        document.getElementById('s-date').value = new Date().toISOString().split('T')[0];
+      }
+    }
+
+    function closeStudyModal() {
+      document.getElementById('study-modal').classList.add('hidden');
+    }
+
+    function createTemplateStudy(type) {
+      openStudyModal();
+      if (type === 'SA') {
+        document.getElementById('s-category').value = "Seeking Alpha 리서치";
+        document.getElementById('s-title').value = "[Seeking Alpha 리서치 요약] 티커명";
+        document.getElementById('s-content').value = "■ Seeking Alpha 평가 등급
+- Quant Rating: 
+- Wall St. Consensus: 
+- Factor Grades: Growth ( ), Profitability ( ), Valuation ( ), Momentum ( ), EPS Revisions ( )
+
+■ 핵심 불/베어 논리 (Bull vs Bear)
+- 핵심 성장 촉매:
+- 리스크 요인:
+
+■ 기술적 매매 연계 전략
+- 지켜볼 진입 지지선:
+- 목표 손익비 및 타겟:";
+      } else if (type === 'CHART') {
+        document.getElementById('s-category').value = "차트 패턴 스터디";
+        document.getElementById('s-title').value = "[차트 패턴 분석] 패턴명 및 사례 종목";
+        document.getElementById('s-content').value = "■ 분석 대상 패턴:
+■ 타임프레임 (일봉/주봉/시간봉):
+
+■ 차트 핵심 관전 포인트
+1. 이평선 배열 상태:
+2. RSI 및 지표 다이버전스:
+3. 거래량(Volume) 시그널:
+
+■ 실전 매매 적용 룰과 배운 점:";
+      } else if (type === 'MACRO') {
+        document.getElementById('s-category').value = "매크로 / 마켓 브리핑";
+        document.getElementById('s-title').value = "[주간 마켓 브리핑] 시장 지수 및 매크로 이벤트 점검";
+        document.getElementById('s-content').value = "■ 지수 동향
+- S&P 500 (SPY):
+- 나스닥 (QQQ):
+- 10년물 국채 금리:
+
+■ 이번 주 주요 경제 지표 / 실적 발표 일정:
+
+■ 주간 매매 전략 및 리스크 관리 계획:";
+      }
+    }
+
+    function saveStudy(e) {
+      e.preventDefault();
+      const id = document.getElementById('form-study-id').value || ("st_" + Date.now());
+      const studyObj = {
+        id: id,
+        category: document.getElementById('s-category').value,
+        date: document.getElementById('s-date').value,
+        tickers: document.getElementById('s-tickers').value.toUpperCase().trim(),
+        title: document.getElementById('s-title').value.trim(),
+        content: document.getElementById('s-content').value.trim()
+      };
+
+      const idx = studies.findIndex(item => item.id === id);
+      if (idx >= 0) {
+        studies[idx] = studyObj;
+      } else {
+        studies.unshift(studyObj);
+      }
+
+      saveStudyToStorage();
+      closeStudyModal();
+      renderStudyNotes();
+    }
+
+    function editStudy(id) {
+      openStudyModal(id);
+    }
+
+    function deleteStudy(id) {
+      if (confirm("이 스터디 노트를 삭제하시겠습니까?")) {
+        studies = studies.filter(s => s.id !== id);
+        saveStudyToStorage();
+        renderStudyNotes();
+      }
+    }
+
+    function openDataModal() {
+      document.getElementById('data-modal').classList.remove('hidden');
+    }
+
+    function closeDataModal() {
+      document.getElementById('data-modal').classList.add('hidden');
+    }
+
+    function downloadBackupJSON() {
+      const backupData = {
+        exportDate: new Date().toISOString(),
+        version: "1.1",
+        trades: trades,
+        watchlist: watchlist,
+        studies: studies
+      };
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupData, null, 2));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", `alphachart_backup_${new Date().toISOString().slice(0,10)}.json`);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+    }
+
+    function restoreFromJSON() {
+      const fileInput = document.getElementById('backup-file-input');
+      if (!fileInput.files || fileInput.files.length === 0) {
+        alert("복원할 JSON 파일을 선택해주세요.");
+        return;
+      }
+      const file = fileInput.files[0];
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const parsed = JSON.parse(e.target.result);
+          if (parsed.trades && Array.isArray(parsed.trades)) {
+            trades = parsed.trades;
+            saveTradesToStorage();
+          }
+          if (parsed.watchlist && Array.isArray(parsed.watchlist)) {
+            watchlist = parsed.watchlist;
+            saveWatchlistToStorage();
+          }
+          if (parsed.studies && Array.isArray(parsed.studies)) {
+            studies = parsed.studies;
+            saveStudyToStorage();
+          }
+          alert("데이터 복원이 완료되었습니다!");
+          closeDataModal();
+          refreshAllViews();
+        } catch (err) {
+          alert("유효한 JSON 백업 파일이 아닙니다.");
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function exportToCSV() {
+      if (trades.length === 0) {
+        alert("내보낼 매매 데이터가 없습니다.");
+        return;
+      }
+      const headers = ["ID", "티커", "진입일", "상태", "방향", "진입가", "손절가", "목표가", "수량", "청산일", "청산가", "결과", "차트셋업", "RSI지표", "거래량/이평선", "SA Quant", "SA FactorGrades", "투자논리", "원칙준수", "복기노트"];
+      const rows = trades.map(t => [
+        t.id,
+        t.ticker,
+        t.entryDate,
+        t.status,
+        t.direction || 'LONG',
+        t.entryPrice,
+        t.stopLoss,
+        t.targetPrice,
+        t.shares,
+        t.exitDate || '',
+        t.exitPrice || '',
+        t.resultStatus || '',
+        `"${(t.setupType || '').replace(/"/g, '""')}"`,
+        `"${(t.rsiVal || '').replace(/"/g, '""')}"`,
+        `"${(t.volumeMa || '').replace(/"/g, '""')}"`,
+        t.saQuant,
+        `"${(t.saGrades || '').replace(/"/g, '""')}"`,
+        `"${(t.saThesis || '').replace(/"/g, '""')}"`,
+        t.ruleChecked ? 'YES' : 'NO',
+        `"${(t.reviewNotes || '').replace(/"/g, '""')}"`
+      ]);
+
+      const csvContent = "﻿" + [headers.join(","), ...rows.map(r => r.join(","))].join("\n");
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.setAttribute("href", url);
+      link.setAttribute("download", `trading_diary_${new Date().toISOString().slice(0,10)}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    }
+
+    window.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>
