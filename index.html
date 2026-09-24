@@ -765,6 +765,7 @@
   </div>
 
   <script>
+
     const SAMPLE_WATCHLIST = [
       {
         id: "wl_1",
@@ -891,14 +892,14 @@
       }
     ];
 
-    const SAMPLE_STUDY = [
+        const SAMPLE_STUDY = [
       {
         id: "st_1",
         date: "2026-09-12",
         category: "Seeking Alpha 리서치",
         tickers: "APP",
         title: "AppLovin(APP) 소프트웨어 플랫폼 성장률 및 RSI 바닥 확인 전략",
-        content: "■ Seeking Alpha 핵심 지표 요약
+        content: `■ Seeking Alpha 핵심 지표 요약
 - Quant Rating: Strong Buy (4.92 / 5.00)
 - Factor Grades: Growth A+, Profitability A+, Momentum A, EPS Revisions A+
 - Wall Street Consensus: Strong Buy
@@ -911,7 +912,7 @@
 ■ 기술적 차트 전략 접목
 - 일봉 기준 RSI가 30 근처(30~35)로 하락할 때마다 강한 반등 패턴 출현
 - 50일 또는 20일 이동평균선과 RSI 과매도가 겹치는 자리가 최적의 스윙 진입 포인트
-- 손절선은 직전 최저점 -2%로 타이트하게 설정하여 손익비 1:3 확보 목표."
+- 손절선은 직전 최저점 -2%로 타이트하게 설정하여 손익비 1:3 확보 목표.`
       },
       {
         id: "st_2",
@@ -919,14 +920,14 @@
         category: "매크로 / 마켓 브리핑",
         tickers: "SPY, QQQ",
         title: "9월 시장 계절성(Seasonality) 대응 및 주간 매매 빈도 조절 원칙",
-        content: "■ 9월 증시 특징
+        content: `■ 9월 증시 특징
 - 역사적으로 9월은 변동성이 크고 주요 지수 조정 확률이 높은 달.
 - FOMC 금리 결정 및 CPI 물가 지표 발표 전후로 급등락 주의.
 
 ■ 나의 매매 운영 방침
 1. 월 20회(주당 4~5회) 트레이딩 원칙 유지하되, 무리한 추격 매수 엄격히 금지
 2. 차트상 확실한 지지선(Support)이 확인된 종목에 한해서만 진입
-3. 현금 비중 30% 상시 유지로 급락 시 바닥 반등 기회 대비"
+3. 현금 비중 30% 상시 유지로 급락 시 바닥 반등 기회 대비`
       }
     ];
 
@@ -1641,12 +1642,12 @@
       document.getElementById('study-modal').classList.add('hidden');
     }
 
-    function createTemplateStudy(type) {
+        function createTemplateStudy(type) {
       openStudyModal();
       if (type === 'SA') {
         document.getElementById('s-category').value = "Seeking Alpha 리서치";
         document.getElementById('s-title').value = "[Seeking Alpha 리서치 요약] 티커명";
-        document.getElementById('s-content').value = "■ Seeking Alpha 평가 등급
+        document.getElementById('s-content').value = `■ Seeking Alpha 평가 등급
 - Quant Rating: 
 - Wall St. Consensus: 
 - Factor Grades: Growth ( ), Profitability ( ), Valuation ( ), Momentum ( ), EPS Revisions ( )
@@ -1657,11 +1658,11 @@
 
 ■ 기술적 매매 연계 전략
 - 지켜볼 진입 지지선:
-- 목표 손익비 및 타겟:";
+- 목표 손익비 및 타겟:`;
       } else if (type === 'CHART') {
         document.getElementById('s-category').value = "차트 패턴 스터디";
         document.getElementById('s-title').value = "[차트 패턴 분석] 패턴명 및 사례 종목";
-        document.getElementById('s-content').value = "■ 분석 대상 패턴:
+        document.getElementById('s-content').value = `■ 분석 대상 패턴:
 ■ 타임프레임 (일봉/주봉/시간봉):
 
 ■ 차트 핵심 관전 포인트
@@ -1669,18 +1670,18 @@
 2. RSI 및 지표 다이버전스:
 3. 거래량(Volume) 시그널:
 
-■ 실전 매매 적용 룰과 배운 점:";
+■ 실전 매매 적용 룰과 배운 점:`;
       } else if (type === 'MACRO') {
         document.getElementById('s-category').value = "매크로 / 마켓 브리핑";
         document.getElementById('s-title').value = "[주간 마켓 브리핑] 시장 지수 및 매크로 이벤트 점검";
-        document.getElementById('s-content').value = "■ 지수 동향
+        document.getElementById('s-content').value = `■ 지수 동향
 - S&P 500 (SPY):
 - 나스닥 (QQQ):
 - 10년물 국채 금리:
 
 ■ 이번 주 주요 경제 지표 / 실적 발표 일정:
 
-■ 주간 매매 전략 및 리스크 관리 계획:";
+■ 주간 매매 전략 및 리스크 관리 계획:`;
       }
     }
 
@@ -1819,6 +1820,7 @@
     }
 
     window.addEventListener('DOMContentLoaded', init);
+  
   </script>
 </body>
 </html>
