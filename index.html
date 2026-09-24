@@ -303,6 +303,10 @@
             <i class="fa-solid fa-file-csv"></i>
             <span>CSV 내보내기</span>
           </button>
+          <button onclick="openEtradeModal()" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium rounded-lg transition flex items-center space-x-1.5 shadow-sm">
+            <i class="fa-solid fa-file-import"></i>
+            <span>E*TRADE CSV 가져오기</span>
+          </button>
           <button onclick="openTradeModal()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition flex items-center space-x-1">
             <i class="fa-solid fa-plus"></i>
             <span>새 매매 등록</span>
@@ -485,6 +489,78 @@
           <button type="submit" class="px-5 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-xs font-medium shadow-md transition">저장하기</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  
+  <!-- MODAL: E*TRADE CSV IMPORT -->
+  <div id="etrade-modal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-slate-800 border border-slate-700 rounded-2xl max-w-2xl w-full max-h-[92vh] flex flex-col shadow-2xl overflow-hidden">
+      <!-- Modal Header -->
+      <div class="p-5 border-b border-slate-700 flex items-center justify-between bg-slate-800/90">
+        <div>
+          <h3 class="text-base font-bold text-white flex items-center space-x-2">
+            <i class="fa-solid fa-file-csv text-indigo-400"></i>
+            <span>E*TRADE 거래내역 CSV 가져오기</span>
+          </h3>
+          <p class="text-xs text-slate-400 mt-0.5">E*TRADE에서 다운로드한 거래내역(Transactions / Orders) CSV 파일을 불러와 매매 일지로 자동 변환합니다.</p>
+        </div>
+        <button onclick="closeEtradeModal()" class="text-slate-400 hover:text-white text-lg p-1.5"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-5 overflow-y-auto custom-scrollbar space-y-4 flex-1">
+        <!-- Step-by-step Guide -->
+        <div class="bg-slate-900/70 p-3.5 rounded-xl border border-slate-700/80 text-xs text-slate-300 space-y-1.5">
+          <span class="font-bold text-indigo-400 block mb-1"><i class="fa-solid fa-circle-info mr-1"></i> E*TRADE에서 CSV 다운로드 방법:</span>
+          <p>1. E*TRADE 웹사이트 로그인 &rarr; 상단 메뉴 <strong>Accounts &gt; Transactions</strong> (또는 Orders) 클릭</p>
+          <p>2. 원하는 조회 기간(예: 지난 30일 / 특정 월)을 선택</p>
+          <p>3. 우측 상단의 <strong>Download</strong> 또는 <strong>Export</strong> 버튼 클릭 &rarr; <strong>CSV</strong> 파일 저장</p>
+        </div>
+
+        <!-- File Upload Input -->
+        <div class="border-2 border-dashed border-slate-700 hover:border-indigo-500 rounded-xl p-5 text-center bg-slate-900/40 transition cursor-pointer" onclick="document.getElementById('etrade-file-input').click()">
+          <input type="file" id="etrade-file-input" accept=".csv" onchange="handleEtradeCSV(event)" class="hidden">
+          <i class="fa-solid fa-cloud-arrow-up text-3xl text-indigo-400 mb-2 block"></i>
+          <span class="text-xs font-semibold text-white block">E*TRADE CSV 파일 선택 또는 여기로 드래그</span>
+          <span class="text-[11px] text-slate-500 mt-1 block">모든 데이터 처리는 사용자 브라우저 내부에서만 안전하게 실행됩니다.</span>
+        </div>
+
+        <!-- Parse Summary & Preview -->
+        <div id="etrade-preview-container" class="hidden space-y-3">
+          <div class="flex items-center justify-between text-xs">
+            <span id="etrade-parse-summary" class="font-bold text-white"></span>
+            <span class="text-[11px] text-slate-400">가져온 후 Seeking Alpha 등급 및 차트 메모를 추가할 수 있습니다.</span>
+          </div>
+
+          <div class="max-h-60 overflow-y-auto border border-slate-700 rounded-lg custom-scrollbar">
+            <table class="w-full text-left text-[11px]">
+              <thead class="bg-slate-900 text-slate-300 sticky top-0">
+                <tr>
+                  <th class="p-2">진입일</th>
+                  <th class="p-2">티커</th>
+                  <th class="p-2">수량</th>
+                  <th class="p-2">진입가</th>
+                  <th class="p-2">청산일</th>
+                  <th class="p-2">청산가</th>
+                  <th class="p-2">상태</th>
+                  <th class="p-2 text-right">실현 손익</th>
+                </tr>
+              </thead>
+              <tbody id="etrade-preview-body" class="divide-y divide-slate-700 text-slate-200">
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="p-4 border-t border-slate-700 flex items-center justify-end space-x-2 bg-slate-800/90">
+        <button type="button" onclick="closeEtradeModal()" class="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-lg text-xs font-medium transition">취소</button>
+        <button type="button" id="btn-confirm-etrade-import" onclick="confirmEtradeImport()" disabled class="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-700 disabled:text-slate-500 text-white rounded-lg text-xs font-medium shadow-md transition">
+          매매 일지에 저장하기
+        </button>
+      </div>
     </div>
   </div>
 
@@ -1817,6 +1893,280 @@
       document.body.appendChild(link);
       link.click();
       link.remove();
+    }
+
+
+    // ==========================================
+    // E*TRADE CSV IMPORT LOGIC
+    // ==========================================
+    let parsedEtradeTrades = [];
+
+    function openEtradeModal() {
+      document.getElementById('etrade-modal').classList.remove('hidden');
+      document.getElementById('etrade-preview-container').classList.add('hidden');
+      document.getElementById('btn-confirm-etrade-import').disabled = true;
+      document.getElementById('etrade-file-input').value = '';
+      parsedEtradeTrades = [];
+    }
+
+    function closeEtradeModal() {
+      document.getElementById('etrade-modal').classList.add('hidden');
+    }
+
+    // Helper: Standard CSV line parser handling commas inside quotes
+    function parseCSVLine(text) {
+      const p = [];
+      let cur = '';
+      let inQuote = false;
+      for (let i = 0; i < text.length; i++) {
+        const c = text[i];
+        if (c === '"') {
+          if (inQuote && text[i+1] === '"') {
+            cur += '"';
+            i++;
+          } else {
+            inQuote = !inQuote;
+          }
+        } else if (c === ',' && !inQuote) {
+          p.push(cur.trim());
+          cur = '';
+        } else {
+          cur += c;
+        }
+      }
+      p.push(cur.trim());
+      return p;
+    }
+
+    function handleEtradeCSV(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const content = e.target.result;
+          parseEtradeContent(content);
+        } catch (err) {
+          alert("CSV 파일 파싱 중 오류가 발생했습니다: " + err.message);
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function parseEtradeContent(rawText) {
+      const lines = rawText.split(/\r?\n/).filter(line => line.trim().length > 0);
+      if (lines.length < 2) {
+        alert("유효한 거래 내역 데이터가 없습니다.");
+        return;
+      }
+
+      // Find header row (it could be line 0 or line 1-3 if there are metadata rows)
+      let headerIdx = -1;
+      let headers = [];
+      for (let i = 0; i < Math.min(10, lines.length); i++) {
+        const parsed = parseCSVLine(lines[i]).map(h => h.toLowerCase().replace(/[^a-z0-9]/g, ''));
+        if (parsed.some(h => h.includes('transactiondate') || h.includes('date') || h.includes('orderdate')) &&
+            parsed.some(h => h.includes('symbol') || h.includes('ticker') || h.includes('security'))) {
+          headerIdx = i;
+          headers = parsed;
+          break;
+        }
+      }
+
+      if (headerIdx === -1) {
+        alert("E*TRADE CSV 헤더(TransactionDate, Symbol 등)를 찾을 수 없습니다. 파일을 확인해주세요.");
+        return;
+      }
+
+      // Index mapping
+      const dateIdx = headers.findIndex(h => h.includes('transactiondate') || h === 'date' || h.includes('activitydate') || h.includes('orderdate'));
+      const typeIdx = headers.findIndex(h => h.includes('transactiontype') || h === 'type' || h.includes('action') || h.includes('description'));
+      const symbolIdx = headers.findIndex(h => h.includes('symbol') || h.includes('ticker'));
+      const qtyIdx = headers.findIndex(h => h.includes('quantity') || h.includes('qty') || h.includes('shares'));
+      const priceIdx = headers.findIndex(h => h.includes('price') || h.includes('execprice'));
+      const amountIdx = headers.findIndex(h => h.includes('amount') || h.includes('netamount'));
+
+      const rawTransactions = [];
+
+      for (let i = headerIdx + 1; i < lines.length; i++) {
+        const cols = parseCSVLine(lines[i]);
+        if (cols.length <= Math.max(dateIdx, symbolIdx)) continue;
+
+        const rawDate = cols[dateIdx] || '';
+        const rawType = (cols[typeIdx] || '').toUpperCase();
+        const symbol = (cols[symbolIdx] || '').toUpperCase().trim();
+        const rawQty = Math.abs(parseFloat((cols[qtyIdx] || '0').replace(/[^0-9.-]/g, '')) || 0);
+        const rawPrice = Math.abs(parseFloat((cols[priceIdx] || '0').replace(/[^0-9.-]/g, '')) || 0);
+
+        if (!symbol || rawQty === 0) continue;
+
+        // Date normalization to YYYY-MM-DD
+        let formattedDate = rawDate;
+        const dObj = new Date(rawDate);
+        if (!isNaN(dObj.getTime())) {
+          formattedDate = dObj.toISOString().split('T')[0];
+        }
+
+        const isBuy = rawType.includes('BOUGHT') || rawType.includes('BUY');
+        const isSell = rawType.includes('SOLD') || rawType.includes('SELL');
+
+        if (isBuy || isSell) {
+          rawTransactions.push({
+            date: formattedDate,
+            type: isBuy ? 'BUY' : 'SELL',
+            symbol: symbol,
+            quantity: rawQty,
+            price: rawPrice
+          });
+        }
+      }
+
+      // Sort chronologically ascending
+      rawTransactions.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+      // Match Buys and Sells into paired trades
+      const openBuys = [];
+      const pairedTrades = [];
+
+      rawTransactions.forEach((tx, idx) => {
+        if (tx.type === 'BUY') {
+          openBuys.push({ ...tx, remainingQty: tx.quantity });
+        } else if (tx.type === 'SELL') {
+          let sellQty = tx.quantity;
+          for (let b of openBuys) {
+            if (b.symbol === tx.symbol && b.remainingQty > 0) {
+              const matchedQty = Math.min(b.remainingQty, sellQty);
+              b.remainingQty -= matchedQty;
+              sellQty -= matchedQty;
+
+              const isWin = tx.price > b.price;
+              const pnl = (tx.price - b.price) * matchedQty;
+
+              pairedTrades.push({
+                id: `etrade_${Date.now()}_${pairedTrades.length}`,
+                ticker: b.symbol,
+                entryDate: b.date,
+                status: 'CLOSED',
+                direction: 'LONG',
+                entryPrice: b.price,
+                stopLoss: Number((b.price * 0.95).toFixed(2)),
+                targetPrice: Number((b.price * 1.10).toFixed(2)),
+                shares: matchedQty,
+                exitDate: tx.date,
+                exitPrice: tx.price,
+                resultStatus: isWin ? 'WIN' : (tx.price === b.price ? 'BREAKEVEN' : 'LOSS'),
+                setupType: '주요 이평선 눌림목(Pullback)',
+                rsiVal: 'E*TRADE 자동 연동',
+                volumeMa: '체결 내역 임포트',
+                chartNotes: `E*TRADE 체결 내역 자동 생성 (매수: ${b.date}, 매도: ${tx.date})`,
+                saQuant: 'Buy',
+                saWallSt: '',
+                saGrades: '',
+                saLink: '',
+                saThesis: '',
+                ruleChecked: true,
+                fomoFree: true,
+                reviewNotes: `E*TRADE 연동 매매 (실현손익: $${pnl.toFixed(2)})`
+              });
+
+              if (sellQty <= 0) break;
+            }
+          }
+        }
+      });
+
+      // Remaining open buys -> HOLDING
+      openBuys.filter(b => b.remainingQty > 0).forEach(b => {
+        pairedTrades.push({
+          id: `etrade_${Date.now()}_${pairedTrades.length}`,
+          ticker: b.symbol,
+          entryDate: b.date,
+          status: 'HOLDING',
+          direction: 'LONG',
+          entryPrice: b.price,
+          stopLoss: Number((b.price * 0.95).toFixed(2)),
+          targetPrice: Number((b.price * 1.10).toFixed(2)),
+          shares: b.remainingQty,
+          exitDate: '',
+          exitPrice: null,
+          resultStatus: '',
+          setupType: '기타',
+          rsiVal: 'E*TRADE 자동 연동',
+          volumeMa: '보유 잔고 반영',
+          chartNotes: `E*TRADE 체결 내역 자동 생성 (현재 보유중)`,
+          saQuant: 'Buy',
+          saWallSt: '',
+          saGrades: '',
+          saLink: '',
+          saThesis: '',
+          ruleChecked: true,
+          fomoFree: true,
+          reviewNotes: '보유중인 포지션'
+        });
+      });
+
+      if (pairedTrades.length === 0) {
+        alert("체결된 주식 매수/매도 거래를 찾을 수 없습니다.");
+        return;
+      }
+
+      parsedEtradeTrades = pairedTrades;
+      renderEtradePreview();
+    }
+
+    function renderEtradePreview() {
+      const container = document.getElementById('etrade-preview-container');
+      const tbody = document.getElementById('etrade-preview-body');
+      const summaryEl = document.getElementById('etrade-parse-summary');
+      const confirmBtn = document.getElementById('btn-confirm-etrade-import');
+
+      container.classList.remove('hidden');
+      tbody.innerHTML = '';
+
+      const closedCount = parsedEtradeTrades.filter(t => t.status === 'CLOSED').length;
+      const openCount = parsedEtradeTrades.filter(t => t.status === 'HOLDING').length;
+
+      summaryEl.innerText = `총 ${parsedEtradeTrades.length}건 매매 추출 완료 (청산: ${closedCount}건, 보유중: ${openCount}건)`;
+      confirmBtn.disabled = false;
+
+      parsedEtradeTrades.forEach(t => {
+        const tr = document.createElement('tr');
+        let pnlText = '-';
+        let pnlClass = 'text-slate-400';
+        if (t.status === 'CLOSED' && t.entryPrice && t.exitPrice) {
+          const pnl = (t.exitPrice - t.entryPrice) * t.shares;
+          pnlText = `${pnl >= 0 ? '+' : ''}$${pnl.toFixed(2)}`;
+          pnlClass = pnl >= 0 ? 'text-emerald-400 font-semibold' : 'text-rose-400 font-semibold';
+        }
+
+        tr.innerHTML = `
+          <td class="p-2 text-slate-400 whitespace-nowrap">${t.entryDate}</td>
+          <td class="p-2 font-bold text-white">${t.ticker}</td>
+          <td class="p-2 font-mono">${t.shares}</td>
+          <td class="p-2 font-mono">$${Number(t.entryPrice).toFixed(2)}</td>
+          <td class="p-2 text-slate-400 whitespace-nowrap">${t.exitDate || '-'}</td>
+          <td class="p-2 font-mono">${t.exitPrice ? '$' + Number(t.exitPrice).toFixed(2) : '-'}</td>
+          <td class="p-2">
+            <span class="px-1.5 py-0.5 rounded text-[10px] ${t.status === 'HOLDING' ? 'bg-amber-500/20 text-amber-300' : t.resultStatus === 'WIN' ? 'bg-emerald-500/20 text-emerald-300' : 'bg-rose-500/20 text-rose-300'}">
+              ${t.status === 'HOLDING' ? '보유중' : t.resultStatus === 'WIN' ? '익절' : '손절'}
+            </span>
+          </td>
+          <td class="p-2 text-right font-mono ${pnlClass}">${pnlText}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function confirmEtradeImport() {
+      if (parsedEtradeTrades.length === 0) return;
+
+      // Add to existing trades
+      trades = [...parsedEtradeTrades, ...trades];
+      saveTradesToStorage();
+      closeEtradeModal();
+      refreshAllViews();
+      alert(`성공적으로 ${parsedEtradeTrades.length}건의 E*TRADE 거래 내역을 매매 일지에 추가했습니다!`);
     }
 
     window.addEventListener('DOMContentLoaded', init);
